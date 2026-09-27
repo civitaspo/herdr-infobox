@@ -28,9 +28,9 @@ jobs:
           version: "2026.9.15"
           install_args: "--locked"
           cache: false
-      - name: Check Rust formatting and lints when implemented
-        run: bash scripts/check-rust.sh lint
-      - name: Test release policy and Rust when implemented
+      - name: Check Rust formatting and lints
+        run: mise run lint:rust
+      - name: Test release policy, Rust, UI, and bridge
         run: mise run test
-      - name: Build Rust when implemented
+      - name: Build Rust
         run: mise run build
