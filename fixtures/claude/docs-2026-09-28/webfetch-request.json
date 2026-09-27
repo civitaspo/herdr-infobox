@@ -1,0 +1,11 @@
+{
+  "session_id": "session-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "WebFetch",
+  "tool_use_id": "fetch-1",
+  "tool_input": {
+    "url": "https://example.com/docs",
+    "prompt": "Read docs"
+  }
+}

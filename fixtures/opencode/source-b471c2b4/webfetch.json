@@ -1,0 +1,16 @@
+{
+  "infobox_schema": 1,
+  "sessionID": "session-example",
+  "directory": "/example/api",
+  "callID": "fetch-1",
+  "event": "tool.execute.after",
+  "tool": "webfetch",
+  "args": {
+    "url": "https://example.com/docs"
+  },
+  "output": {
+    "title": "https://example.com/docs (text/html)",
+    "output": "Example body",
+    "metadata": {}
+  }
+}

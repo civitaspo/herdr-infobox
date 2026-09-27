@@ -1,0 +1,21 @@
+{
+  "parser_version": 1,
+  "checked_on": "2026-09-28",
+  "binary_version": null,
+  "runtime_tested": false,
+  "fixture_origin": "synthetic documentation/source-derived; not captured agent output",
+  "source": "https://code.claude.com/docs/en/hooks",
+  "source_commit": null,
+  "fixtures": [
+    "webfetch-request",
+    "webfetch-success",
+    "plan-proposed",
+    "plan-approved",
+    "search",
+    "todos"
+  ],
+  "sdk_version": "0.3.283",
+  "sdk_source": "https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk/-/claude-agent-sdk-0.3.283.tgz",
+  "sdk_file": "package/sdk-tools.d.ts",
+  "sdk_integrity": "sha512-KB+mqU5JLbH2sztlSQeCOu71bK6padYAha3uacBzxFSOVfuRTywYzvsC9P+qV6gXmPXcu98FaPqQv6vBF9j8hA=="
+}

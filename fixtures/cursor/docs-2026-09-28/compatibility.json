@@ -1,0 +1,13 @@
+{
+  "parser_version": 1,
+  "checked_on": "2026-09-28",
+  "binary_version": null,
+  "runtime_tested": false,
+  "fixture_origin": "synthetic documentation/source-derived; not captured agent output",
+  "source": "https://cursor.com/docs/hooks",
+  "source_commit": null,
+  "fixtures": [
+    "post-tool",
+    "malformed-output"
+  ]
+}

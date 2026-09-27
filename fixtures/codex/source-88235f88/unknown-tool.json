@@ -1,0 +1,11 @@
+{
+  "session_id": "thread-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "unknown_future_tool",
+  "tool_use_id": "unknown-1",
+  "tool_input": {
+    "url": "https://example.com/not-a-reference"
+  },
+  "tool_response": {}
+}

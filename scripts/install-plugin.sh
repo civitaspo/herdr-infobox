@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$root"
+if [[ ! -f Cargo.toml ]]; then
+  test -x bin/herdr-infobox
+  exit
+fi
+cargo build --release --locked
+mkdir -p bin
+install -m 755 target/release/herdr-infobox bin/herdr-infobox

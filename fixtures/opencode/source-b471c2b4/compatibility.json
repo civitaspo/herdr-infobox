@@ -1,0 +1,13 @@
+{
+  "parser_version": 1,
+  "checked_on": "2026-09-28",
+  "binary_version": null,
+  "runtime_tested": false,
+  "fixture_origin": "synthetic documentation/source-derived; not captured agent output",
+  "source": "https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/plugin/src/index.ts",
+  "source_commit": "b471c2b4495747353af768fbf2e0790c9d820ce2",
+  "fixtures": [
+    "webfetch",
+    "unknown-schema"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "conversation_id": "conversation-example",
+  "cwd": "/example/api",
+  "hook_event_name": "postToolUse",
+  "tool_name": "Shell",
+  "tool_use_id": "shell-2",
+  "tool_input": {},
+  "tool_output": "{incomplete"
+}

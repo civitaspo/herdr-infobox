@@ -1,0 +1,11 @@
+{
+  "session_id": "session-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PreToolUse",
+  "tool_name": "ExitPlanMode",
+  "tool_use_id": "plan-1",
+  "tool_input": {
+    "plan": "# Plan\n\nImplement the API.",
+    "planFilePath": "/example/plan.md"
+  }
+}

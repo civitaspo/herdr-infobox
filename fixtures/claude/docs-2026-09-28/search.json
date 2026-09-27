@@ -1,0 +1,24 @@
+{
+  "session_id": "session-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PostToolUse",
+  "tool_use_id": "tool-example",
+  "tool_input": {},
+  "tool_name": "WebSearch",
+  "tool_response": {
+    "query": "example",
+    "results": [
+      {
+        "tool_use_id": "search-example",
+        "content": [
+          {
+            "title": "Example docs",
+            "url": "https://example.com/docs"
+          }
+        ]
+      },
+      "Commentary https://example.com/ignored"
+    ],
+    "durationSeconds": 0.1
+  }
+}
