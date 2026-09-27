@@ -63,12 +63,11 @@ fn spool(paths: &Paths, batch: &EventBatch) -> Result<()> {
             }
         }
     }
-    let started = std::time::Instant::now();
     let mut used = 0;
     let mut count = 0;
     for entry in fs::read_dir(&paths.spool)? {
         count += 1;
-        if count > 1024 || started.elapsed() > Duration::from_millis(10) {
+        if count >= 1024 {
             record_loss(paths);
             return Err("Spool accounting limit exceeded".into());
         }

@@ -217,6 +217,16 @@ fn repeated_busy_spool_delivery_has_one_projection() {
     );
     ingest::persist_or_spool(&paths, &batch).unwrap();
     ingest::persist_or_spool(&paths, &batch).unwrap();
+    for index in 0..1022 {
+        std::fs::write(paths.spool.join(format!("{index}.tmp")), []).unwrap();
+    }
+    assert_eq!(
+        ingest::persist_or_spool(&paths, &batch)
+            .unwrap_err()
+            .to_string(),
+        "Spool accounting limit exceeded"
+    );
+    assert_eq!(std::fs::read_dir(&paths.spool).unwrap().count(), 1024);
     futures::executor::block_on(conn.execute_batch("ROLLBACK")).unwrap();
     assert_eq!(ingest::drain(&paths, &mut store).unwrap(), 2);
     assert_eq!(store.view(&s).unwrap().references.len(), 1);
