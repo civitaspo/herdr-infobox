@@ -6,6 +6,7 @@ if [[ ! -f Cargo.toml ]]; then
   test -x bin/herdr-infobox
   exit
 fi
-cargo build --release --locked
+target=$(rustc -vV | sed -n 's/^host: //p')
+cargo build --release --locked --target "$target" --target-dir "$root/target"
 mkdir -p bin
-install -m 755 target/release/herdr-infobox bin/herdr-infobox
+install -m 755 "target/$target/release/herdr-infobox" bin/herdr-infobox
