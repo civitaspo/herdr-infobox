@@ -20,4 +20,4 @@ uuid = { version = "1.26.1", features = ["v4", "serde"] }
 toml = { version = "1.1.4", default-features = false, features = ["parse", "std", "serde"] }
 
 [dev-dependencies]
-tempfile = "3"
+tempfile = "=3.27.0"
