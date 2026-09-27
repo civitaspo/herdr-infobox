@@ -39,6 +39,9 @@ jobs:
           install_args: "--locked"
           cache: false
 
+      - name: Synchronize release versions
+        run: python3 scripts/sync-version.py
+
       - name: Fix action pins
         env:
           PINACT_GITHUB_TOKEN: ${{ github.token }}

@@ -8,7 +8,7 @@ The type-only SDK dependency is pinned in package.json. OpenCode V2 and live V1 
 
 ## Run the bridge checks
 
-Node 24 supports stripping the TypeScript types used by this bridge.
+The Node version pinned in mise.toml supports stripping the TypeScript types used by this bridge. Both bridge checks also run in `mise run test`.
 
 ```sh
 node adapters/opencode/test.mjs

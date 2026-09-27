@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-config="$(pwd)/cliff.toml"
+root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
+config="$root/cliff.toml"
+while IFS= read -r variable; do
+  unset "$variable"
+done < <(git rev-parse --local-env-vars)
+export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null
 fixture=$(mktemp -d)
 trap 'rm -rf "$fixture"' EXIT
 check_bump() {
@@ -8,7 +13,7 @@ check_bump() {
   mkdir "$fixture/$name"
   (
     cd "$fixture/$name"
-    git init --quiet --initial-branch=main
+    git init --quiet --initial-branch=main --template=
     git config user.name "Release Policy Test"
     git config user.email "release-policy@example.invalid"
     git config commit.gpgsign false

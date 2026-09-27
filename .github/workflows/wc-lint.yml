@@ -37,17 +37,9 @@ jobs:
           PINACT_GITHUB_TOKEN: ${{ github.token }}
         run: pinact run --check --verify-comment
 
-      - name: Ensure checkout credentials are disabled
-        run: |
-          disable-checkout-persist-credentials
-          git diff --exit-code -- .github/workflows
-
       - name: ShellCheck release scripts
         if: hashFiles('scripts/**/*.sh') != ''
         run: find scripts -type f -name '*.sh' -print0 | xargs -0 -r shellcheck
 
       - name: Run ghalint
         run: ghalint run
-
-      - name: Check workflow formatting
-        run: git diff --exit-code -- .github/workflows

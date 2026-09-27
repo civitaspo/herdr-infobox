@@ -15,13 +15,31 @@ The server allowlist entry is `civitaspo/herdr-infobox` with `publish: github-re
 
 ## Current publication scope
 
-The foundation supports **source-only GitHub Releases**. There is no Rust executable yet, so no binaries are built, no crates.io package is published, and no placeholder executable is shipped.
+The server still publishes **source-only GitHub Releases**. Local binary packaging is available, but this change does not add asset upload, crates.io publication, release dispatch, or a new server strategy.
 
-When the implementation is added, wire binary builds into a reviewed server publication strategy that uploads all assets before publishing the draft. Do not add post-publication asset uploads if immutable releases are enabled. The shared release preparer updates `.release-version`; it currently does not update Cargo.toml, Cargo.lock, or herdr-plugin.toml. Choose and test Rust/manifest version synchronization before the first binary release.
+Before publishing binaries, review a server publication strategy that builds and verifies every intended target, uploads all assets to the draft, and publishes only after the asset set is complete. The current `publish: github-release` allowlist remains unchanged. Do not upload assets after publication when immutable releases are enabled.
+
+## Version synchronization
+
+`.release-version` is the version authority. Run `python3 scripts/sync-version.py` to update the root package in Cargo.toml and Cargo.lock and the top-level version in herdr-plugin.toml. The script leaves dependency versions and the minimum Herdr version unchanged. It accepts stable versions and prereleases, rejects invalid numeric identifiers, and validates all three destinations before writing.
+
+`python3 scripts/sync-version.py --check` reports mismatches without writing. All Rust lint, test, and build entrypoints run this check. The test entrypoint also exercises synchronization in temporary fixtures, including a prerelease, an invalid version, and an unrelated lockfile package.
+
+The shared release preparer continues to update `.release-version` and CHANGELOG.md. The existing PR autofix job synchronizes the three package files and submits the resulting change through its existing Securefix action. It does not push directly or gain additional permissions. A release PR may initially fail the version check until that signed follow-up commit arrives. Review the synchronized versions and require green CI before explicitly merging the release PR. If Securefix cannot submit the change, perform the same synchronization on the release branch through the normal signed PR process. Never bypass the check.
+
+## Preparing a local binary archive
+
+Run `bash scripts/package.sh` on a native runner for the intended target. The optional first argument is a Rust target triple. Accepted archive layouts are `aarch64-apple-darwin`, `x86_64-apple-darwin`, `aarch64-unknown-linux-gnu`, and `x86_64-unknown-linux-gnu`. A listed target is a packaging option, not evidence that its toolchain, binary, or Turso filesystem behavior has been tested.
+
+The script checks version agreement, builds the locked release binary, and creates `dist/herdr-infobox-vVERSION-TARGET.tar.gz` plus a SHA-256 checksum file. The archive contains the Herdr manifest, executable, installation script, license, documentation, and the OpenCode bridge source and package metadata. It excludes agent settings, state databases, test fixtures, and dependency directories. The installation script recognizes the packaged executable and does not require a Rust build in the extracted archive.
+
+For each target intended for publication, verify its checksum and inspect the archive contents before extracting it into a temporary directory. Run the extracted `bin/herdr-infobox --version` and compare it with `.release-version`. Run the extracted installation script and confirm the executable remains present. Run `doctor --json --state-dir TEMP_STATE` with a fresh temporary state directory and inspect the compatibility findings. These checks do not authorize changing live hooks or launching real coding agents. Cross-built artifacts require execution and filesystem tests on their actual target OS before being called verified.
+
+Creating an archive does not publish a release. Keep publication behind the existing explicit release PR merge and server validation.
 
 ## Version policy
 
-`.release-version` starts at `0.0.0`. git-cliff uses stable `vX.Y.Z` tags:
+The initial `.release-version` is `0.0.0`. git-cliff uses stable `vX.Y.Z` tags:
 
 - `fix:` and other releasable changes bump patch.
 - `feat:` bumps minor.
