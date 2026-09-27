@@ -1,0 +1,12 @@
+{
+  "parser_version": 1,
+  "checked_on": "2026-09-28",
+  "binary_version": null,
+  "runtime_tested": false,
+  "fixture_origin": "synthetic documentation/source-derived; not captured agent output",
+  "source": "https://docs.devin.ai/cli/extensibility/hooks/lifecycle-hooks",
+  "source_commit": null,
+  "fixtures": [
+    "failed-tool"
+  ]
+}

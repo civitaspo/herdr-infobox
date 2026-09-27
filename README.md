@@ -2,35 +2,47 @@
 
 [![CI](https://github.com/civitaspo/herdr-infobox/actions/workflows/pull_request.yml/badge.svg)](https://github.com/civitaspo/herdr-infobox/actions/workflows/pull_request.yml)
 
-A Herdr information pane for coding-agent repositories, diffs, web references, and plans.
+A Rust information pane for coding-agent sessions in Herdr.
 
-## Status
+Info keeps repository and worktree links, read-only local diffs, web references with provenance, and Plan revisions together. Data persists in a local embedded Turso database while the pane is closed. Session identity is independent of pane identity. Plan documents, task checklists, approval, and execution are separate records.
 
-This repository currently contains the project foundation and release infrastructure. The Rust plugin is not implemented yet, and there is no installable binary or Herdr plugin manifest.
+Diff review exports the displayed patch to an immutable Markdown snapshot and opens the reviewer supplied by herdr-annotate in copy-only mode. It never stages files, changes the Git index, fetches remotes, approves a Plan, or sends comments to an uncertain agent session.
 
-The planned pane will show:
+## Try it
 
-- GitHub links for the repositories and worktrees observed in an agent session.
-- Local worktree diffs, with review comments opened in herdr-annotate.
-- URLs and titles supplied by web-search tools.
-- Plan documents and task progress, with provider-specific collection status.
+```sh
+mise install --locked
+mise run build
+target/debug/herdr-infobox session add --provider claude --native-id example
+target/debug/herdr-infobox repo add --session example --path /path/to/repository
+target/debug/herdr-infobox ref add --session example --url https://example.com/docs
+target/debug/herdr-infobox plan attach --session example --file /path/to/plan.md
+target/debug/herdr-infobox ui --session example
+```
 
-The initial providers are Codex, Claude Code, OpenCode, and Cursor CLI. Devin CLI is an additional target. Missing provider metadata will be shown explicitly rather than inferred.
+Use `--state-dir /absolute/path` for isolated tests. Add more repositories with `repo add`. Use `ui --once` to inspect a session without an interactive terminal. Use `doctor --json` to distinguish registration, observed collection, and unavailable integrations.
+
+See [installation and upgrades](docs/installation.md), [pane controls](docs/usage.md), [Git behavior](docs/git.md), and [local storage](docs/storage.md).
+
+## Provider coverage
+
+Claude Code has a fixture-tested path through repository discovery, diffs, references, Plan documents, and checklists. OpenCode V1 has a small TypeScript bridge. Codex has hook collection and an explicit versioned JSONL reader. Cursor and Devin expose conservative session metadata and manual fallbacks where tool schemas are unverified.
+
+All provider fixtures are synthetic examples derived from official documentation or source. Real coding-agent sessions and live hook delivery have not been validated. The pane shows partial or unavailable capabilities with reasons. Missing metadata never proves successful fetching, plan approval, or completion. See [compatibility evidence](docs/compatibility.md).
+
+The target platforms are macOS and Linux, with Herdr 0.9.1 or newer. Live Herdr and clipboard smoke tests remain manual acceptance items. Turso 0.7.2 multiprocess WAL is explicitly experimental. No daemon, cloud database, web dashboard, or replacement agent runtime is installed.
 
 ## Development
 
-Install the pinned tools and run the checks:
-
-```bash
-mise install --locked
+```sh
 mise run lint
 mise run test
 mise run build
 ```
 
-Before a root `Cargo.toml` exists, Rust checks report that the implementation is absent. Release-policy tests still run. Once the Rust package is added, the same commands run formatting, Clippy, tests, and a locked build.
+Tests include versioned parser fixtures, temporary Git repositories, fake Herdr/annotate executables, and actual collector CLI processes with temporary state. OpenCode bridge checks are documented in [its README](adapters/opencode/README.md).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [the project scope](docs/project-scope.md), [Securefix](docs/securefix.md), and [releasing](docs/releasing.md). All repository communication is in English.
+The existing Securefix release architecture remains in place. No release is published by the test suite. Read [releasing](docs/releasing.md) before preparing a release. See [the implementation workflow](docs/implementation/plan.md) for decisions and acceptance evidence.
 
 ## License
 

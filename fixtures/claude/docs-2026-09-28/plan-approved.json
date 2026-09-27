@@ -1,0 +1,12 @@
+{
+  "session_id": "session-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "ExitPlanMode",
+  "tool_use_id": "plan-1",
+  "tool_input": {},
+  "tool_response": {
+    "plan": "# Plan\n\nImplement and test the API.",
+    "filePath": "/example/plan.md"
+  }
+}

@@ -12,3 +12,7 @@
 # Editor metadata
 .idea/
 .vscode/
+
+# Local plugin builds and binary archives
+/bin/
+/dist/

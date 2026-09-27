@@ -1,0 +1,17 @@
+{
+  "session_id": "thread-example",
+  "cwd": "/example/api",
+  "transcript_path": null,
+  "hook_event_name": "PostToolUse",
+  "tool_name": "update_plan",
+  "tool_use_id": "plan-1",
+  "tool_input": {
+    "plan": [
+      {
+        "step": "Implement the API",
+        "status": "in_progress"
+      }
+    ]
+  },
+  "tool_response": "Plan updated"
+}

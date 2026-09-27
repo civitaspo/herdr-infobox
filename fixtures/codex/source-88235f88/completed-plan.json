@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-09-28T00:00:00Z",
+  "type": "event_msg",
+  "payload": {
+    "type": "item_completed",
+    "thread_id": "thread-example",
+    "turn_id": "turn-example",
+    "item": { "type": "Plan", "id": "plan-example", "text": "# Plan\nBuild and test." },
+    "completed_at_ms": 0
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "session_id": "devin-example",
+  "prompt_id": "prompt-example",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "webfetch",
+  "tool_input": {},
+  "tool_response": {
+    "success": false,
+    "output": "",
+    "error": "Failed"
+  }
+}

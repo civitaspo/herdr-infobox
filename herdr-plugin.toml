@@ -1,0 +1,40 @@
+id = "herdr-infobox"
+name = "Info"
+version = "0.0.0"
+min_herdr_version = "0.9.1"
+description = "Session repositories, local diffs, references, and plans"
+platforms = ["macos", "linux"]
+
+[[build]]
+command = ["bash", "scripts/install-plugin.sh"]
+platforms = ["macos", "linux"]
+
+[[panes]]
+id = "info"
+title = "Info"
+placement = "split"
+command = ["./bin/herdr-infobox", "ui"]
+
+[[panes]]
+id = "review"
+title = "Info review (copy only)"
+placement = "split"
+command = ["./bin/herdr-infobox", "annotate-view"]
+
+[[actions]]
+id = "toggle"
+title = "Toggle Info"
+contexts = ["pane", "tab"]
+command = ["./bin/herdr-infobox", "toggle"]
+
+[[events]]
+on = "pane.focused"
+command = ["./bin/herdr-infobox", "ensure"]
+
+[[events]]
+on = "tab.focused"
+command = ["./bin/herdr-infobox", "ensure"]
+
+[[events]]
+on = "workspace.focused"
+command = ["./bin/herdr-infobox", "ensure"]

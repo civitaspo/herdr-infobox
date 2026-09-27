@@ -1,0 +1,16 @@
+{
+  "conversation_id": "conversation-example",
+  "generation_id": "generation-example",
+  "workspace_roots": [
+    "/example/api",
+    "/example/infra"
+  ],
+  "cwd": "/example/api",
+  "hook_event_name": "postToolUse",
+  "tool_name": "Shell",
+  "tool_use_id": "shell-1",
+  "tool_input": {
+    "command": "pwd"
+  },
+  "tool_output": "{\"exitCode\":0,\"stdout\":\"/example/api\"}"
+}

@@ -1,0 +1,18 @@
+{
+  "parser_version": 1,
+  "checked_on": "2026-09-28",
+  "binary_version": null,
+  "runtime_tested": false,
+  "fixture_origin": "synthetic documentation/source-derived; not captured agent output",
+  "source": "https://learn.chatgpt.com/docs/hooks",
+  "source_commit": "88235f881d4e222cf779df785e747d8c8b935768",
+  "fixtures": [
+    "checklist",
+    "unknown-tool",
+    "completed-plan"
+  ],
+  "additional_sources": [
+    "https://github.com/openai/codex/blob/88235f881d4e222cf779df785e747d8c8b935768/codex-rs/protocol/src/protocol.rs",
+    "https://github.com/openai/codex/blob/88235f881d4e222cf779df785e747d8c8b935768/codex-rs/protocol/src/items.rs"
+  ]
+}

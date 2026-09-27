@@ -1,0 +1,19 @@
+{
+  "session_id": "session-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "WebFetch",
+  "tool_use_id": "fetch-1",
+  "tool_input": {
+    "url": "https://example.com/docs",
+    "prompt": "Read docs"
+  },
+  "tool_response": {
+    "bytes": 12,
+    "code": 200,
+    "codeText": "OK",
+    "result": "Example docs",
+    "durationMs": 10,
+    "url": "https://example.com/docs"
+  }
+}

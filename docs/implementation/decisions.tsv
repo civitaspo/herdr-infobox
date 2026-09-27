@@ -1,0 +1,8 @@
+ts	phase	decision	why	evidence	result
+2026-09-27T15:21:49Z	frame	Preserve existing Securefix workflows and use one Rust package	The foundation is already deployed; plugin implementation is independent	docs/implementation/plan.md	baseline checks passed
+2026-09-27T15:22:58Z	contracts	Treat normal Codex and Cursor Web and Plan collection as partial	Official schemas do not establish complete normal CLI collection	docs/implementation/provider-contracts.md	source verified; runtime unverified
+2026-09-27T15:22:58Z	contracts	Use copy-only annotate launcher	Downstream Send does not check native session identity	docs/implementation/herdr-contracts.md	source verified; runtime unverified
+2026-09-27T15:37:59Z	storage	Replace rusqlite with embedded Turso 0.7.2 at user request	Preserve relational identities while using the requested Rust engine; verify separate-process hooks before adoption	docs/implementation/turso-probe.md	prototype verified on macOS; Linux and crash tests remain open
+2026-09-27T15:40:33Z	core	Validate Claude fixtures through actual collector processes and persisted pane output	Compilation alone cannot establish the input-to-display path	tests/end_to_end.rs	3 end-to-end tests passed before engine migration
+2026-09-27T15:40:33Z	review	Fix Git environment contamination and exact adapter registration ownership	Independent review reproduced wrong-repository selection and duplicate Codex hook registration	tests/git.rs	Git and adapter regression checks passed before engine migration
+2026-09-27T15:49:46Z	verify	Run all required checks on Turso and resolve independent reviews	The engine transition must preserve the complete CLI-to-view behavior	docs/implementation/validation.md	Passed; provider live delivery remains unverified

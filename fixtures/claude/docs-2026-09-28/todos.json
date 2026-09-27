@@ -1,0 +1,18 @@
+{
+  "session_id": "session-example",
+  "cwd": "/example/api",
+  "hook_event_name": "PostToolUse",
+  "tool_use_id": "tool-example",
+  "tool_input": {},
+  "tool_name": "TodoWrite",
+  "tool_response": {
+    "oldTodos": [],
+    "newTodos": [
+      {
+        "content": "Implement API",
+        "status": "in_progress",
+        "activeForm": "Implementing API"
+      }
+    ]
+  }
+}
