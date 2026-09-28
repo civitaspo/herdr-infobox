@@ -8,10 +8,10 @@ The type-only SDK dependency is pinned in package.json. OpenCode V2 and live V1 
 
 ## Run the bridge checks
 
-The Node version pinned in mise.toml supports stripping the TypeScript types used by this bridge. Both bridge checks also run in `mise run test`.
+Node is pinned only for the `test:opencode` task in mise.toml and supports stripping the TypeScript types used by this bridge. Both bridge checks also run in `mise run test`.
 
 ```sh
-node adapters/opencode/test.mjs
+mise run test:opencode
 ```
 
 The test mocks the OpenCode API and child spawn. It verifies session directory selection, absolute state arguments, immutable tool output, and failure containment. It does not start OpenCode or consume agent credentials.
