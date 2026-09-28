@@ -116,25 +116,6 @@ fn devin_claude_import_is_not_misattributed_and_failure_is_not_opened() {
 }
 
 #[test]
-fn opencode_never_uses_tool_title_as_page_title_and_rejects_unknown_envelopes() {
-    let batch = decode(
-        Provider::OpenCode,
-        include_bytes!("../fixtures/opencode/source-b471c2b4/webfetch.json"),
-        &context(),
-    )
-    .unwrap();
-    assert!(batch.events.iter().any(|e| matches!(e, Observation::Reference { title: None, relation, .. } if relation == "opened")));
-    assert!(
-        decode(
-            Provider::OpenCode,
-            include_bytes!("../fixtures/opencode/source-b471c2b4/unknown-schema.json"),
-            &context()
-        )
-        .is_err()
-    );
-}
-
-#[test]
 fn transcript_plan_has_session_guard_and_no_execution_inference() {
     let session = SessionKey {
         host_id: "host".into(),

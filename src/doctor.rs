@@ -70,9 +70,15 @@ pub fn report(paths: &Paths, store: &Store) -> Result<Value> {
     let losses = std::fs::read_to_string(paths.state.join("collection-loss-count"))
         .ok()
         .and_then(|v| v.trim().parse::<u64>().ok());
+    let opencode_sessions: Vec<_> = store
+        .sessions()?
+        .into_iter()
+        .filter(|s| crate::opencode_sync::configured(paths, s))
+        .map(|s| s.id)
+        .collect();
     Ok(
         json!({"version":env!("CARGO_PKG_VERSION"),"database":store.health()?,
-        "adapters":crate::adapters::status(paths)?,"herdr":herdr,"annotate":annotate,
+        "adapters":crate::adapters::status(paths)?,"opencode_v2_connected_sessions":opencode_sessions,"herdr":herdr,"annotate":annotate,
         "spool_loss_counter":losses,"provider_runtime_verification":"Not performed; see fixture compatibility.json",
         "hook_registration_is_not_execution":true}),
     )

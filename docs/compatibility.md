@@ -5,7 +5,7 @@ No coding-agent session was started to validate this implementation. Fixtures ar
 | Provider | Implemented extraction | Limits requiring manual registration or further verification |
 | --- | --- | --- |
 | Claude Code | Native session, cwd, successful file-tool paths, WebFetch requests and explicit successful HTTP responses, structured WebSearch URL/title groups, ExitPlanMode proposed and approved revisions, TodoWrite/TaskList replacement and TaskGet merge | Live hook delivery is unverified. TaskCreate/TaskUpdate partial updates are not interpreted. Approval does not establish execution. |
-| OpenCode V1 | Native session/call ID, queried session directory, successful webfetch URL, exact source-derived Git-project Plan path | Bridge SDK is pinned to 1.18.32. Live delivery and V2 are unverified. Search-engine outputs and non-Git Plan paths are unavailable. Tool titles are not page titles. |
+| OpenCode V2 2.0.18 | Native session and parent, current/historical directories and file-tool paths, successful/failed webfetch observations, completed Plan-agent prose as proposed documents | Rust reads the full projected export from an explicit existing server. V1 is unsupported. Page titles, search results, checklists, Plan approval and execution are unavailable. Live coding-agent sessions remain unverified. |
 | Codex CLI | Native session/cwd, update_plan checklist, explicit source-derived completed Plan/WebSearch JSONL records | Hosted WebSearch bypasses hooks. Rollout is unstable. Compressed/paginated storage and extension WebSearch are unsupported. Checklist is not Plan prose. |
 | Cursor CLI | Conversation identity, cwd, workspace roots, validation of JSON-stringified generic tool/MCP output | Built-in Web and Plan payloads and normal CLI hook delivery are unverified. No guessed URL or Plan extraction. ACP is a separate runtime. |
 | Devin CLI | Stable native session, project root from DEVIN_PROJECT_DIR, conservative capability state | Tool argument schemas are unverified. No automatic Web, Plan, or checklist facts are inferred. |
@@ -18,13 +18,25 @@ A feature marked partial is not evidence that the provider emitted every event. 
 
 [Codex hooks](https://learn.chatgpt.com/docs/hooks) explicitly exclude hosted WebSearch and warn that transcript format is unstable. Source commit [`88235f881d4e222cf779df785e747d8c8b935768`](https://github.com/openai/codex/tree/88235f881d4e222cf779df785e747d8c8b935768) provides the completed item and checklist types. The reader accepts newline-complete JSONL records only, verifies the initial session metadata, keeps a byte cursor per session/file/parser, and restarts after detectable truncation or inode replacement. Unknown records report their byte offset. Concurrent rewrite to identical inode and equal or greater size is not completely detectable. Raw transcripts are not copied to the database.
 
-[OpenCode plugin types](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/plugin/src/index.ts), [session Plan path](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/opencode/src/session/session.ts), and [plan_exit](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/opencode/src/tool/plan.ts) establish the V1 bridge contract. The bridge queries session directory rather than assigning startup directory to every session. It reads a Plan only when session project and worktree match, the runtime supplies a valid slug and creation time, and the file is a bounded regular file. Missing Plan evidence does not stop other panels.
+OpenCode is pinned to the released [v2.0.18 source](https://github.com/anomalyco/opencode/tree/cd9a14a6b688d4021bee381dfd39d2cef9c0f862), rather than the V1 default branch.
+The [session export API](https://github.com/anomalyco/opencode/blob/cd9a14a6b688d4021bee381dfd39d2cef9c0f862/packages/protocol/src/groups/session.ts) returns the full projected transcript.
+The [CLI connection implementation](https://github.com/anomalyco/opencode/blob/cd9a14a6b688d4021bee381dfd39d2cef9c0f862/packages/cli/src/services/server-connection.ts) uses an existing server when `--server` is explicit. Infobox always supplies it and never uses standalone mode.
+The [message schema](https://github.com/anomalyco/opencode/blob/cd9a14a6b688d4021bee381dfd39d2cef9c0f862/packages/schema/src/session-message.ts) distinguishes running, completed, and failed tools.
+The [Plan plugin](https://github.com/anomalyco/opencode/blob/cd9a14a6b688d4021bee381dfd39d2cef9c0f862/packages/core/src/plugin/plan.ts) primarily discusses plans in conversation. V1 filename and plan_exit assumptions have been removed.
 
 [Cursor hooks](https://cursor.com/docs/hooks) define stable `conversation_id`, turn-specific `generation_id`, nullable transcript path, and JSON-stringified results. Workspace roots record workspace membership only. [Devin lifecycle hooks](https://docs.devin.ai/cli/extensibility/hooks/lifecycle-hooks) define `tool_response.success`; [Devin hook configuration](https://docs.devin.ai/cli/extensibility/hooks/overview) also loads Claude hooks by default. A Claude-configured collector with `DEVIN_PROJECT_DIR` is classified as Devin rather than storing events under the wrong provider.
 
-## OpenCode bridge setup
+The released macOS arm64 OpenCode 2.0.18 executable was also tested against an
+ephemeral local HTTP fixture server. This verified the actual version output,
+explicit-server health checks, and raw export response end to end. The archive
+SHA-1 matched npm metadata (`9f0c66abd02c4acffb0d998deb24db420adc0b04`).
+Child HOME/XDG directories were isolated. No coding-agent session, model request,
+or provider configuration change was involved.
 
-The plugin exports `createInfobox(binary, state)`. Both arguments must be absolute paths. A generated local wrapper can export `createInfobox("/absolute/herdr-infobox", "/absolute/state")`. The optional `Infobox` export instead reads `HERDR_INFOBOX_BIN` and `HERDR_INFOBOX_STATE_DIR`. A missing or relative path disables collection safely. The bridge uses a 75 ms session lookup deadline and a 75 ms child-process deadline. These are bounds, not measured p95 results. Existing OpenCode configuration must be preserved when adding the wrapper's file URL.
+## OpenCode V2 collection
+
+
+See [connection instructions](installation.md#connect-opencode-v2). Rust validates the CLI/server version and export before persistence. No provider configuration is changed. Full export reconciliation was chosen over a TypeScript hook bridge so recovery also covers periods when the pane is closed. Limits are explicit; no missing metadata is converted into successful fetches, approval, or execution.
 
 ## Remaining manual verification
 

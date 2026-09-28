@@ -101,6 +101,14 @@ pub fn run(paths: &Paths, store: &mut Store, selector: Option<&str>, once: bool)
         loop {
             if let Ok(mut db) = Store::open(&worker_paths) {
                 let _ = crate::ingest::drain(&worker_paths, &mut db);
+                if let Ok(sessions) = db.sessions() {
+                    for session in sessions {
+                        if session.key.provider == Provider::OpenCode {
+                            let _ =
+                                crate::opencode_sync::reconcile(&worker_paths, &mut db, &session);
+                        }
+                    }
+                }
                 if let Ok(pending) = db.pending_paths() {
                     for p in pending {
                         let result = git::discover(&p.path, &p.cwd).map_err(|e| e.to_string());

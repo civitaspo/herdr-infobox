@@ -10,7 +10,7 @@ The implementation target is a Rust terminal pane inside Herdr, with provider ad
 - Open immutable Markdown diff snapshots in the reviewer supplied by herdr-annotate.
 - Preserve web URLs, titles, and their provenance, distinguishing search results from successful fetches.
 - Store plan documents separately from task checklists and preserve the revision selected for execution.
-- Use a local embedded Turso store and short-lived collection hooks. OpenCode needs a small native TypeScript bridge.
+- Use a local embedded Turso store and short-lived collection hooks. OpenCode V2 uses bounded Rust reconciliation against an explicitly selected existing server; V1 is not supported.
 
 Provider capabilities differ. In particular, Codex hosted web search is not a normal local tool hook, and Cursor's interactive CLI and ACP are different collection paths. Support must be established with versioned fixtures before claiming complete collection.
 
