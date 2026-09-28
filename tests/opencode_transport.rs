@@ -4,36 +4,35 @@ use herdr_infobox::opencode_transport::export;
 use std::{fs, os::unix::fs::PermissionsExt, path::PathBuf, time::Instant};
 use tempfile::TempDir;
 
-fn executable(body: &str) -> (TempDir, PathBuf) {
+fn executable(case: &str) -> (TempDir, PathBuf) {
     let directory = tempfile::tempdir().unwrap();
-    let binary = directory.path().join("opencode");
-    fs::write(&binary, format!("#!/bin/sh\n{body}\n")).unwrap();
-    fs::set_permissions(&binary, fs::Permissions::from_mode(0o700)).unwrap();
+    let binary = directory.path().join(case);
+    // Immutable executable bytes avoid writable descriptors inherited by concurrent spawns.
+    std::os::unix::fs::symlink(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/opencode.sh"),
+        &binary,
+    )
+    .unwrap();
     (directory, binary)
 }
 
 #[test]
 fn explicit_server_and_encoded_session_are_passed_without_a_shell() {
-    let (directory, binary) = executable(
-        r#"if [ "$1" = --version ]; then printf 'opencode v2.0.18\n'; exit; fi
-if [ "$5" = /api/info ]; then printf '{"version":"2.0.18"}\n'; exit; fi
-printf '%s\n' "$@" > "$0.args"
-printf '{"data":{"info":{"id":"ses_fixture"},"messages":[]}}\n'"#,
-    );
+    let (directory, binary) = executable("success");
     let bytes = export(&binary, "http://localhost:4096", "ses/a?b#c%20").unwrap();
     assert_eq!(
         serde_json::from_slice::<serde_json::Value>(&bytes).unwrap()["data"]["info"]["id"],
         "ses_fixture"
     );
     assert_eq!(
-        fs::read_to_string(directory.path().join("opencode.args")).unwrap(),
+        fs::read_to_string(directory.path().join("success.args")).unwrap(),
         "api\n--server\nhttp://localhost:4096/\nGET\n/api/experimental/session/ses%2Fa%3Fb%23c%2520/export\n"
     );
 }
 
 #[test]
 fn invalid_servers_and_empty_ids_are_rejected_before_execution() {
-    let (_directory, binary) = executable("exit 99");
+    let (_directory, binary) = executable("invalid");
     for server in [
         "",
         "relative",
@@ -49,18 +48,14 @@ fn invalid_servers_and_empty_ids_are_rejected_before_execution() {
 
 #[test]
 fn unknown_versions_and_failed_commands_do_not_expose_output() {
-    let (_directory, binary) = executable("printf 'opencode v2.0.19\\n'");
+    let (_directory, binary) = executable("unknown-cli");
     assert!(
         export(&binary, "http://localhost", "ses_fixture")
             .unwrap_err()
             .to_string()
             .contains("unverified")
     );
-    let (_directory, binary) = executable(
-        r#"if [ "$1" = --version ]; then printf 'opencode v2.0.18\n'; exit; fi
-if [ "$5" = /api/info ]; then printf '{"version":"2.0.18"}\n'; exit; fi
-printf 'private-session-body'; printf 'secret-token' >&2; exit 1"#,
-    );
+    let (_directory, binary) = executable("failed");
     assert_eq!(
         export(&binary, "http://localhost", "ses_fixture")
             .unwrap_err()
@@ -71,31 +66,19 @@ printf 'private-session-body'; printf 'secret-token' >&2; exit 1"#,
 
 #[test]
 fn unknown_server_versions_are_rejected_before_export() {
-    let (directory, binary) = executable(
-        r#"if [ "$1" = --version ]; then printf 'opencode v2.0.18\n'; exit; fi
-if [ "$5" = /api/info ]; then printf '{"version":"2.0.19"}\n'; exit; fi
-touch "$0.exported""#,
-    );
+    let (directory, binary) = executable("unknown-server");
     let error = export(&binary, "http://localhost", "ses_fixture")
         .unwrap_err()
         .to_string();
     assert!(error.contains("server version is unverified"), "{error}");
-    assert!(!directory.path().join("opencode.exported").exists());
+    assert!(!directory.path().join("unknown-server.exported").exists());
 }
 
 #[test]
 fn excessive_output_and_hanging_commands_are_bounded() {
-    let (_directory, binary) = executable(
-        r#"if [ "$1" = --version ]; then printf 'opencode v2.0.18\n'; exit; fi
-if [ "$5" = /api/info ]; then printf '{"version":"2.0.18"}\n'; exit; fi
-exec dd if=/dev/zero bs=1048576 count=17 2>/dev/null"#,
-    );
+    let (_directory, binary) = executable("oversized");
     assert!(export(&binary, "http://localhost", "ses_fixture").is_err());
-    let (_directory, binary) = executable(
-        r#"if [ "$1" = --version ]; then printf 'opencode v2.0.18\n'; exit; fi
-if [ "$5" = /api/info ]; then printf '{"version":"2.0.18"}\n'; exit; fi
-sleep 30"#,
-    );
+    let (_directory, binary) = executable("hanging");
     let started = Instant::now();
     assert!(export(&binary, "http://localhost", "ses_fixture").is_err());
     assert!(started.elapsed().as_secs() < 10);
@@ -120,11 +103,15 @@ fn released_cli_reads_a_fixture_http_server() {
     let home = tempfile::tempdir().unwrap();
     let quote =
         |path: &std::path::Path| format!("'{}'", path.to_str().unwrap().replace('\'', "'\\''"));
-    let (_wrapper_directory, binary) = executable(&format!(
-        "export HOME={}\nexport XDG_CONFIG_HOME=\"$HOME/config\"\nexport XDG_DATA_HOME=\"$HOME/data\"\nexport XDG_STATE_HOME=\"$HOME/state\"\nexport XDG_CACHE_HOME=\"$HOME/cache\"\nunset OPENCODE_PASSWORD OPENCODE_CONFIG OPENCODE_CONFIG_CONTENT OPENCODE_CONFIG_DIR\nexec {} \"$@\"",
+    let wrapper_directory = tempfile::tempdir().unwrap();
+    let wrapper = wrapper_directory.path().join("opencode");
+    fs::write(&wrapper, format!(
+        "#!/bin/sh\nexport HOME={}\nexport XDG_CONFIG_HOME=\"$HOME/config\"\nexport XDG_DATA_HOME=\"$HOME/data\"\nexport XDG_STATE_HOME=\"$HOME/state\"\nexport XDG_CACHE_HOME=\"$HOME/cache\"\nunset OPENCODE_PASSWORD OPENCODE_CONFIG OPENCODE_CONFIG_CONTENT OPENCODE_CONFIG_DIR\nexec {} \"$@\"\n",
         quote(home.path()),
         quote(&binary),
-    ));
+    )).unwrap();
+    fs::set_permissions(&wrapper, fs::Permissions::from_mode(0o700)).unwrap();
+    let binary = wrapper;
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
     let server = format!("http://{}", listener.local_addr().unwrap());
     listener.set_nonblocking(true).unwrap();
