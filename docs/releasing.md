@@ -21,9 +21,9 @@ Before publishing binaries, review a server publication strategy that builds and
 
 ## Version synchronization
 
-`.release-version` is the version authority. Run `python3 scripts/sync-version.py` to update the root package in Cargo.toml and Cargo.lock and the top-level version in herdr-plugin.toml. The script leaves dependency versions and the minimum Herdr version unchanged. It accepts stable versions and prereleases, rejects invalid numeric identifiers, and validates all three destinations before writing.
+`.release-version` is the version authority. Run `bash scripts/sync-version.sh` to update the root package in Cargo.toml and Cargo.lock and the top-level version in herdr-plugin.toml. The launcher compiles a standard-library-only Rust utility with rustc, so it can repair stale Cargo metadata without first asking Cargo to resolve that metadata. The script leaves dependency versions and the minimum Herdr version unchanged. It accepts stable versions and prereleases, rejects invalid numeric identifiers, and validates all three destinations before writing.
 
-`python3 scripts/sync-version.py --check` reports mismatches without writing. All Rust lint, test, and build entrypoints run this check. The test entrypoint also exercises synchronization in temporary fixtures, including a prerelease, an invalid version, and an unrelated lockfile package.
+`bash scripts/sync-version.sh --check` reports mismatches without writing. All Rust lint, test, and build entrypoints run this check. The test entrypoint also exercises synchronization in temporary fixtures, including a prerelease, an invalid version, and an unrelated lockfile package.
 
 The shared release preparer continues to update `.release-version` and CHANGELOG.md. The existing PR autofix job synchronizes the three package files and submits the resulting change through its existing Securefix action. It does not push directly or gain additional permissions. A release PR may initially fail the version check until that signed follow-up commit arrives. Review the synchronized versions and require green CI before explicitly merging the release PR. If Securefix cannot submit the change, perform the same synchronization on the release branch through the normal signed PR process. Never bypass the check.
 

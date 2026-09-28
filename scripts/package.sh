@@ -2,7 +2,7 @@
 set -euo pipefail
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$root"
-python3 scripts/sync-version.py --check
+bash scripts/sync-version.sh --check
 triple=${1:-$(rustc -vV | sed -n 's/^host: //p')}
 case "$triple" in
   aarch64-apple-darwin|x86_64-apple-darwin|aarch64-unknown-linux-gnu|x86_64-unknown-linux-gnu) ;;

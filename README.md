@@ -40,7 +40,7 @@ mise run test
 mise run build
 ```
 
-Tests include versioned parser fixtures, temporary Git repositories, fake Herdr/annotate executables, and actual collector CLI processes with temporary state. The default test task also runs the PTY UI and OpenCode bridge checks using the pinned Python and Node runtimes. See [the bridge README](adapters/opencode/README.md).
+Tests include versioned parser fixtures, temporary Git repositories, fake Herdr/annotate executables, and actual collector CLI processes with temporary state. The default test task also runs the PTY UI and OpenCode bridge checks using native Rust PTY tests and a Node runtime scoped to the OpenCode test task. See [the bridge README](adapters/opencode/README.md).
 
 Mise owns the lint/test/build commands directly; CI uses the same tasks. `lint:rust` is the Rust-only check used by the platform matrix. Lint does not rewrite workflows: ghalint enforces checkout credential policy, while the Securefix autofix job owns repairs. Runtime tests build the native host target explicitly and pass its exact executable path to the probes, even when Cargo has a cross-compilation target configured. The build task respects normal Cargo configuration. Use `mise -C /path/to/herdr-infobox run test` from outside the checkout.
 

@@ -22,7 +22,7 @@ The independent correctness passes found and corrected Git environment contamina
 
 `node --experimental-strip-types adapters/opencode/integration.mjs target/debug/herdr-infobox` passed against Turso with a mocked session lookup and the actual collector. This proves local bridge transport, not OpenCode runtime delivery.
 
-`python3 scripts/test-ui-runtime.py` passed: a 30-column PTY copies selected Plan text, opens its canonical source through a fake opener, and keeps pins separate across fake Herdr instances. The [collector benchmark](collector-performance.md) measured 100 sequential debug processes at p95 17.838 ms; this does not establish live-provider or sustained-load latency.
+The original Python PTY probe (now replaced by `tests/ui_runtime.rs`) passed: a 30-column PTY copies selected Plan text, opens its canonical source through a fake opener, and keeps pins separate across fake Herdr instances. The [collector benchmark](collector-performance.md) measured 100 sequential debug processes at p95 17.838 ms; this does not establish live-provider or sustained-load latency.
 
 ## Unverified and deliberately unavailable
 

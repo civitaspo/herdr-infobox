@@ -1,6 +1,4 @@
 [tools]
-node = "22.22.2"
-python = "3.13.12"
 rust = { version = "1.98.1", components = ["clippy", "rustfmt"] }
 "aqua:koalaman/shellcheck" = "0.11.0"
 "aqua:orhun/git-cliff" = "2.14.2"
@@ -20,7 +18,8 @@ run = [
 [tasks."lint:rust"]
 description = "Check release versions, Rust formatting, and Clippy"
 run = [
-  "python3 scripts/sync-version.py --check",
+  "bash scripts/sync-version.sh --check",
+  "rustfmt --edition 2024 --check scripts/sync-version.rs",
   "cargo fmt --all -- --check",
   "cargo clippy --workspace --all-targets --all-features --locked -- -D warnings",
 ]
@@ -28,23 +27,42 @@ run = [
 [tasks.test]
 description = "Test release policy, Rust, terminal UI, and OpenCode bridge"
 run = [
-  "python3 scripts/sync-version.py --check",
+  "bash scripts/sync-version.sh --check",
   "bash scripts/test-release-policy.sh",
-  "python3 scripts/test-version-sync.py",
   """
 set -eu
 target=$(rustc -vV | sed -n 's/^host: //p')
 test -n "$target"
 cargo test --workspace --all-features --locked --target "$target" --target-dir target
-python3 scripts/test-ui-runtime.py "target/$target/debug/herdr-infobox"
-node adapters/opencode/test.mjs
-node adapters/opencode/integration.mjs "target/$target/debug/herdr-infobox"
+mise run test:opencode
 """,
 ]
 
 [tasks.build]
 description = "Check release versions and build the Rust executable"
 run = [
-  "python3 scripts/sync-version.py --check",
+  "bash scripts/sync-version.sh --check",
   "cargo build --workspace --locked",
 ]
+
+[tasks."test:opencode"]
+description = "Test the OpenCode JavaScript boundary with its pinned runtime"
+tools = { node = "22.22.2" }
+run = """
+set -eu
+target=$(rustc -vV | sed -n 's/^host: //p')
+test -n "$target"
+cargo build --locked --target "$target" --target-dir target
+node adapters/opencode/test.mjs
+node adapters/opencode/integration.mjs "target/$target/debug/herdr-infobox"
+"""
+
+[tasks.benchmark]
+description = "Measure synthetic collector process latency and persistence"
+run = """
+set -eu
+target=$(rustc -vV | sed -n 's/^host: //p')
+test -n "$target"
+cargo build --locked --target "$target" --target-dir target
+cargo run --locked --target "$target" --target-dir target --example benchmark_collector -- "target/$target/debug/herdr-infobox"
+"""
