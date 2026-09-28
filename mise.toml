@@ -47,7 +47,7 @@ run = [
 
 [tasks."test:opencode"]
 description = "Test the OpenCode JavaScript boundary with its pinned runtime"
-tools = { node = "22.23.3" }
+tools = { node = "24.21.0" }
 run = """
 set -eu
 target=$(rustc -vV | sed -n 's/^host: //p')
