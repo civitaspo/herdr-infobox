@@ -60,7 +60,7 @@ pub fn export(binary: &Path, server: &str, native_id: &str) -> Result<Vec<u8>> {
 
 fn run(command: &mut Command, limit: usize) -> Result<Vec<u8>> {
     let (success, stdout, _) = git::bounded(command, limit, Duration::from_secs(5))
-        .map_err(|_| "OpenCode command could not complete within its time and output limits")?;
+        .map_err(|error| format!("OpenCode command could not complete: {error}"))?;
     if !success {
         return Err("OpenCode command failed".into());
     }

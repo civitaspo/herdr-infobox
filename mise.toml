@@ -10,7 +10,7 @@ rust = { version = "1.98.1", components = ["clippy", "rustfmt"] }
 description = "Check workflow security, action pins, shell scripts, and Rust"
 depends = ["lint:rust"]
 run = [
-  "shellcheck scripts/*.sh",
+  "shellcheck scripts/*.sh tests/fixtures/*.sh",
   "ghalint run",
   "pinact run --check --verify-comment",
 ]
