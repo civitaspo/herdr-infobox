@@ -76,12 +76,10 @@ fn unknown_server_versions_are_rejected_before_export() {
 if [ "$5" = /api/info ]; then printf '{"version":"2.0.19"}\n'; exit; fi
 touch "$0.exported""#,
     );
-    assert!(
-        export(&binary, "http://localhost", "ses_fixture")
-            .unwrap_err()
-            .to_string()
-            .contains("server version is unverified")
-    );
+    let error = export(&binary, "http://localhost", "ses_fixture")
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("server version is unverified"), "{error}");
     assert!(!directory.path().join("opencode.exported").exists());
 }
 
@@ -180,4 +178,17 @@ fn released_cli_reads_a_fixture_http_server() {
             .iter()
             .any(|path| path == "/api/experimental/session/ses_fixture/export")
     );
+}
+
+#[test]
+fn concurrent_fixture_processes_preserve_version_checks() {
+    std::thread::scope(|scope| {
+        for _ in 0..4 {
+            scope.spawn(|| {
+                for _ in 0..100 {
+                    unknown_server_versions_are_rejected_before_export();
+                }
+            });
+        }
+    });
 }
