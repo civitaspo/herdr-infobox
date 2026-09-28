@@ -13,12 +13,11 @@ version=$(tr -d '[:space:]' < .release-version)
 name="herdr-infobox-v${version}-${triple}"
 staging=$(mktemp -d)
 trap 'rm -rf -- "$staging"' EXIT
-mkdir -p "$staging/$name/bin" "$staging/$name/adapters/opencode" "$staging/$name/scripts" dist
+mkdir -p "$staging/$name/bin" "$staging/$name/scripts" dist
 cp "target/$triple/release/herdr-infobox" "$staging/$name/bin/herdr-infobox"
 cp scripts/install-plugin.sh "$staging/$name/scripts/"
 cp herdr-plugin.toml LICENSE README.md .release-version "$staging/$name/"
 cp -R docs "$staging/$name/docs"
-cp adapters/opencode/index.ts adapters/opencode/package.json adapters/opencode/README.md "$staging/$name/adapters/opencode/"
 tar -czf "dist/$name.tar.gz" -C "$staging" "$name"
 (cd dist && shasum -a 256 "$name.tar.gz" > "$name.tar.gz.sha256")
 printf 'Prepared %s\n' "dist/$name.tar.gz"

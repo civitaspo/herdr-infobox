@@ -76,7 +76,7 @@ pub fn configure(
     uninstall: bool,
 ) -> Result<String> {
     if provider == Provider::OpenCode {
-        return opencode(paths, dry_run, uninstall);
+        return Err("OpenCode uses V2 API synchronization. Use opencode connect/disconnect; no provider hooks are installed. Remove any old V1 plugin entry manually.".into());
     }
     if provider == Provider::Devin {
         return Ok(format!(
@@ -269,57 +269,6 @@ pub fn configure(
         if uninstall { "Removed" } else { "Installed" },
         provider.name(),
         target.display()
-    ))
-}
-
-fn opencode(paths: &Paths, dry_run: bool, uninstall: bool) -> Result<String> {
-    let dir = directory(paths);
-    let launcher = dir.join("opencode.ts");
-    let ownership = dir.join("opencode-loader-owned");
-    if uninstall {
-        if !launcher.exists() {
-            return Ok(
-                "OpenCode loader is absent. Remove its file URL from your plugin array if present."
-                    .into(),
-            );
-        }
-        if fs::read(&launcher)? != fs::read(&ownership).unwrap_or_default() {
-            return Err("OpenCode loader was edited; nothing removed".into());
-        }
-        if !dry_run {
-            fs::remove_file(&launcher)?;
-            fs::remove_file(&ownership)?;
-        }
-        return Ok(format!(
-            "{} owned loader. Remove only {} from the OpenCode plugin array. Other settings are unchanged.",
-            if dry_run { "Would remove" } else { "Removed" },
-            launcher.display()
-        ));
-    }
-    let plugin_root = std::env::var_os("HERDR_PLUGIN_ROOT").map(PathBuf::from)
-        .ok_or("Set HERDR_PLUGIN_ROOT to the installed infobox directory containing adapters/opencode/index.ts")?;
-    let bridge = fs::canonicalize(plugin_root.join("adapters/opencode/index.ts"))?;
-    let binary = fs::canonicalize(std::env::current_exe()?)?;
-    let bridge_url =
-        url::Url::from_file_path(&bridge).map_err(|_| "Bridge path must be absolute")?;
-    let source = format!(
-        "import {{ createInfobox }} from {};\nexport const Infobox = createInfobox({}, {});\n",
-        serde_json::to_string(bridge_url.as_str())?,
-        serde_json::to_string(binary.to_str().ok_or("Binary path must be UTF-8")?)?,
-        serde_json::to_string(paths.state.to_str().ok_or("State path must be UTF-8")?)?
-    );
-    if launcher.exists() && fs::read(&launcher)? != fs::read(&ownership).unwrap_or_default() {
-        return Err("OpenCode loader was edited; preserve it before upgrading".into());
-    }
-    if !dry_run {
-        atomic_write(&launcher, source.as_bytes(), 0o600)?;
-        atomic_write(&ownership, source.as_bytes(), 0o600)?;
-    }
-    let loader_url =
-        url::Url::from_file_path(&launcher).map_err(|_| "Loader path must be absolute")?;
-    Ok(format!(
-        "Merge this plugin entry into OpenCode JSON/JSONC configuration. Preserve existing plugin entries. Runtime compatibility is unverified.\n{}",
-        serde_json::to_string_pretty(&json!({"plugin":[loader_url.as_str()]}))?
     ))
 }
 

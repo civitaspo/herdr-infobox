@@ -85,43 +85,48 @@ pub(crate) fn bounded(
     let start = Instant::now();
     let mut outputs = [None, None];
     let mut status = None;
-    loop {
-        while let Ok((stream, result)) = rx.try_recv() {
-            outputs[stream] = Some(result?);
-        }
-        let exceeded = outputs.iter().flatten().any(|v| v.len() > limit);
-        if exceeded || start.elapsed() > timeout {
-            #[cfg(unix)]
+    let result = (|| -> Result<_> {
+        loop {
+            while let Ok((stream, result)) = rx.try_recv() {
+                outputs[stream] = Some(result?);
+            }
+            let exceeded = outputs.iter().flatten().any(|v| v.len() > limit);
+            if exceeded || start.elapsed() > timeout {
+                return Err(if exceeded {
+                    "command output limit exceeded"
+                } else {
+                    "command timed out"
+                }
+                .into());
+            }
+            if status.is_none() {
+                status = child.try_wait()?;
+            }
+            if let Some(status) = status
+                && outputs.iter().all(Option::is_some)
             {
-                let _ = Command::new("/bin/kill")
-                    .args(["-KILL", "--", &format!("-{}", child.id())])
-                    .stdout(Stdio::null())
-                    .stderr(Stdio::null())
-                    .status();
+                return Ok((
+                    status.success(),
+                    outputs[0].take().unwrap_or_default(),
+                    outputs[1].take().unwrap_or_default(),
+                ));
             }
-            let _ = child.kill();
-            let _ = child.wait();
-            return Err(if exceeded {
-                "command output limit exceeded"
-            } else {
-                "command timed out"
-            }
-            .into());
+            thread::sleep(Duration::from_millis(5));
         }
-        if status.is_none() {
-            status = child.try_wait()?;
-        }
-        if let Some(status) = status
-            && outputs.iter().all(Option::is_some)
+    })();
+    if result.is_err() {
+        #[cfg(unix)]
         {
-            return Ok((
-                status.success(),
-                outputs[0].take().unwrap_or_default(),
-                outputs[1].take().unwrap_or_default(),
-            ));
+            let _ = Command::new("/bin/kill")
+                .args(["-KILL", "--", &format!("-{}", child.id())])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
         }
-        thread::sleep(Duration::from_millis(5));
+        let _ = child.kill();
+        let _ = child.wait();
     }
+    result
 }
 fn command(root: &Path) -> Command {
     let mut cmd = Command::new("git");

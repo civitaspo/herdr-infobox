@@ -30,11 +30,7 @@ WebFetch input has `url` and `prompt`. WebSearch input has `query` but the full 
 
 ## OpenCode
 
-HEAD still equals design revision `b471c2b4495747353af768fbf2e0790c9d820ce2`. [V1 type definition](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/plugin/src/index.ts) defines `tool.execute.after(input: {tool,sessionID,callID,args}, output: {title,output,metadata})`. [Plugin docs](https://opencode.ai/docs/plugins/) describe plugin events. Do not use plugin startup directory for every session, query the corresponding session context.
-
-[webfetch.ts](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/opencode/src/tool/webfetch.ts) validates `args.url`; output `title` is URL plus content type, not page title. Thus reference title stays unavailable. [session.ts](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/opencode/src/session/session.ts) function `plan` builds `<worktree>/.opencode/plans/<time.created>-<slug>.md` for Git projects and data/plans otherwise. Read only the exact session-associated path. [plan.ts](https://github.com/anomalyco/opencode/blob/b471c2b4495747353af768fbf2e0790c9d820ce2/packages/opencode/src/tool/plan.ts) `plan_exit` asks before switching to build agent; rejection fails. A before event does not prove approval. Successful after output can establish transition, but exact plan revision must be captured from that session's path with change detection.
-
-V2 is a separate interface. This research did not verify its executable SDK types; mark V2 unsupported rather than claiming V1 hooks cover it. A small V1 bridge should send known args/output, native session/call IDs, and queried session cwd as an infobox-defined envelope. Catch collector failures and never mutate tool objects.
+The initial implementation incorrectly targeted V1 from the default branch. That research is superseded by the released OpenCode V2 2.0.18 contract. V1 bridge code and filename inference have been removed. See [current compatibility evidence](../compatibility.md) for immutable source links and the Rust-only export transport.
 
 ## Devin
 

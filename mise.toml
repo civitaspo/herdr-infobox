@@ -25,7 +25,7 @@ run = [
 ]
 
 [tasks.test]
-description = "Test release policy, Rust, terminal UI, and OpenCode bridge"
+description = "Test release policy and Rust integrations"
 run = [
   "bash scripts/sync-version.sh --check",
   "bash scripts/test-release-policy.sh",
@@ -34,7 +34,6 @@ set -eu
 target=$(rustc -vV | sed -n 's/^host: //p')
 test -n "$target"
 cargo test --workspace --all-features --locked --target "$target" --target-dir target
-mise run test:opencode
 """,
 ]
 
@@ -44,18 +43,6 @@ run = [
   "bash scripts/sync-version.sh --check",
   "cargo build --workspace --locked",
 ]
-
-[tasks."test:opencode"]
-description = "Test the OpenCode JavaScript boundary with its pinned runtime"
-tools = { node = "22.23.3" }
-run = """
-set -eu
-target=$(rustc -vV | sed -n 's/^host: //p')
-test -n "$target"
-cargo build --locked --target "$target" --target-dir target
-node adapters/opencode/test.mjs
-node adapters/opencode/integration.mjs "target/$target/debug/herdr-infobox"
-"""
 
 [tasks.benchmark]
 description = "Measure synthetic collector process latency and persistence"

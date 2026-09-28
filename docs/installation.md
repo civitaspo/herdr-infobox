@@ -45,7 +45,37 @@ Typical explicit targets are `$HOME/.claude/settings.json`, `$CODEX_HOME/hooks.j
 
 A collector stores only enrolled sessions. Register the exact native session with `session add`, or let the current Herdr pane establish that identity. A matching working directory alone does not enroll a session. The launcher records an absolute binary path and state path. It does not depend on the provider's working directory or Herdr plugin environment. A Devin process importing Claude hooks is classified through the documented Devin environment rather than silently recorded as Claude.
 
-For OpenCode V1, set `HERDR_PLUGIN_ROOT` to the installed infobox directory and run `adapters install opencode`. Merge the printed file URL into your existing `plugin` array. The generated TypeScript loader records the absolute binary and state paths. The bridge resolves each tool's native session before collecting it. OpenCode V2 remains unsupported pending a verified adapter.
+## Connect OpenCode V2
+
+OpenCode V1 is not supported. Use the verified CLI and server version 2.0.18.
+No OpenCode plugin, JavaScript bridge, or provider hook configuration is needed.
+
+Enroll the native session, then select the already running server explicitly:
+
+```sh
+herdr-infobox session add --provider opencode --native-id ses_EXACT_NATIVE_ID
+herdr-infobox opencode connect --session ses_EXACT_NATIVE_ID --server http://127.0.0.1:4096
+herdr-infobox reconcile --session ses_EXACT_NATIVE_ID
+```
+
+Use `--binary /absolute/path/to/opencode` if the V2 executable is not on PATH.
+The connection is saved only after a successful import. The CLI and server version
+are both checked. URLs containing credentials, query strings, or fragments are rejected.
+The OpenCode CLI handles `OPENCODE_PASSWORD`; infobox does not save passwords.
+Only connect trusted servers whose reported repository paths refer to this host.
+
+The UI worker refreshes connected sessions between its two-second cycles. Each
+CLI call has a five-second deadline and the export is capped at 16 MiB.
+A slow server can delay the next refresh, but not interactive pane input.
+When the UI is closed no collector runs; the next reconciliation reads the full
+persisted projected history, including messages before compaction. Repeated
+exports are deduplicated, while changed tool states are imported again.
+An unavailable server, unknown version/schema, or oversized export reports an error
+and retains previous observations. Run `reconcile` for details and `doctor` for diagnostics.
+
+Completed Plan-agent text becomes a proposed document. Switching agents or a
+successful session outcome does not imply Plan approval or execution.
+Use `plan attach` for explicit files and `plan select` for manual execution selection.
 
 Devin automatic settings mutation is unavailable because individual tool contracts and imported-hook interactions need runtime verification. Its conservative parser can consume documented lifecycle fixtures. Do not label that parser coverage as a verified installed integration.
 
@@ -65,7 +95,7 @@ For settings installed with an explicit path, run the corresponding command.
 herdr-infobox adapters uninstall claude --config "$HOME/.claude/settings.json"
 ```
 
-Only entries matching the ownership receipt are removed. Edited entries stay in place and are reported. Other provider settings remain intact. Remove manually merged fragments yourself. For OpenCode, remove the generated loader's exact file URL from the plugin array, then run `adapters uninstall opencode`.
+Only entries matching the ownership receipt are removed. Edited entries stay in place and are reported. Other provider settings remain intact. Remove manually merged fragments yourself. For OpenCode V2, run `herdr-infobox opencode disconnect --session SESSION`. This removes only the infobox connection, preserving cached history and provider configuration. If upgrading from the old V1 bridge, remove only its exact loader URL from your OpenCode `plugin` array and then remove the owned `opencode.ts` loader; V1 collection is no longer supported.
 
 Remove the plugin through Herdr. Keep the state directory if you want session history or snapshots. Removing infobox does not remove provider transcripts or annotate comments. Snapshots are never automatically deleted.
 

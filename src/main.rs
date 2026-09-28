@@ -43,6 +43,11 @@ enum Command {
         #[arg(long)]
         file: Option<PathBuf>,
     },
+    #[command(name = "opencode")]
+    OpenCode {
+        #[command(subcommand)]
+        command: OpenCodeCommand,
+    },
     Toggle,
     Ensure,
     #[command(hide = true)]
@@ -141,6 +146,21 @@ enum SnapshotCommand {
         path: Option<PathBuf>,
         #[arg(long)]
         base: Option<String>,
+    },
+}
+#[derive(Subcommand)]
+enum OpenCodeCommand {
+    Connect {
+        #[arg(long)]
+        session: String,
+        #[arg(long)]
+        server: String,
+        #[arg(long, default_value = "opencode")]
+        binary: PathBuf,
+    },
+    Disconnect {
+        #[arg(long)]
+        session: String,
     },
 }
 #[derive(Subcommand)]
@@ -310,7 +330,37 @@ fn run(cli: Cli) -> Result<()> {
         Command::Ui { session, once } => {
             herdr_infobox::ui::run(&paths, &mut store, session.as_deref(), once)?
         }
+        Command::OpenCode { command } => match command {
+            OpenCodeCommand::Connect {
+                session,
+                server,
+                binary,
+            } => {
+                let session = store.resolve(&session)?;
+                let count = herdr_infobox::opencode_sync::connect(
+                    &paths, &mut store, &session, server, binary,
+                )?;
+                println!("Connected OpenCode V2; reconciled {count} records");
+            }
+            OpenCodeCommand::Disconnect { session } => {
+                let session = store.resolve(&session)?;
+                herdr_infobox::opencode_sync::disconnect(&paths, &session)?;
+                println!("Disconnected OpenCode V2; cached history preserved");
+            }
+        },
         Command::Reconcile { session, file } => {
+            let mut sync_error = None;
+            let selected = session.as_deref().map(|id| store.resolve(id)).transpose()?;
+            for entry in store.sessions()? {
+                if entry.key.provider == Provider::OpenCode
+                    && selected.as_ref().is_none_or(|s| s.id == entry.id)
+                    && let Err(error) =
+                        herdr_infobox::opencode_sync::reconcile(&paths, &mut store, &entry)
+                {
+                    sync_error = Some(error);
+                }
+            }
+
             if let Some(file) = file {
                 let session = store.resolve(
                     session
@@ -339,6 +389,9 @@ fn run(cli: Cli) -> Result<()> {
                 store.finish_path(&pending, &result)?;
             }
             println!("Reconciled {count} spool batches");
+            if let Some(error) = sync_error {
+                return Err(error);
+            }
         }
         Command::Doctor { json } => {
             let report = herdr_infobox::doctor::report(&paths, &store)?;

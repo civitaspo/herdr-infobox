@@ -10,6 +10,11 @@ pub struct IngressContext {
 }
 
 pub fn decode(provider: Provider, input: &[u8], context: &IngressContext) -> Result<EventBatch> {
+    if provider == Provider::OpenCode {
+        return Err(
+            "OpenCode V1 hooks are unsupported; use opencode connect with a V2 server".into(),
+        );
+    }
     let value: Value = serde_json::from_slice(input)?;
     let provider = if provider == Provider::Claude && context.devin_project_dir.is_some() {
         Provider::Devin
@@ -18,27 +23,11 @@ pub fn decode(provider: Provider, input: &[u8], context: &IngressContext) -> Res
     };
     let id_field = match provider {
         Provider::Cursor => "conversation_id",
-        Provider::OpenCode => "sessionID",
         _ => "session_id",
     };
     let native_session_id = required(&value, id_field)?.to_owned();
-    if provider == Provider::OpenCode && value["infobox_schema"].as_u64() != Some(1) {
-        return Err("Unsupported OpenCode bridge schema".into());
-    }
-    let event = required(
-        &value,
-        if provider == Provider::OpenCode {
-            "event"
-        } else {
-            "hook_event_name"
-        },
-    )?;
-    let call_id = value[if provider == Provider::OpenCode {
-        "callID"
-    } else {
-        "tool_use_id"
-    }]
-    .as_str();
+    let event = required(&value, "hook_event_name")?;
+    let call_id = value["tool_use_id"].as_str();
     let mut batch = EventBatch {
         schema_version: 1,
         session: SessionKey {
@@ -47,12 +36,7 @@ pub fn decode(provider: Provider, input: &[u8], context: &IngressContext) -> Res
             native_session_id,
             agent_scope: value["agent_id"].as_str().unwrap_or("main").to_owned(),
         },
-        source: if provider == Provider::OpenCode {
-            "bridge"
-        } else {
-            "hook"
-        }
-        .into(),
+        source: "hook".into(),
         source_event_id: call_id
             .map(|id| format!("{id}:{event}"))
             .unwrap_or_else(|| context.ingress_id.clone()),
@@ -63,14 +47,7 @@ pub fn decode(provider: Provider, input: &[u8], context: &IngressContext) -> Res
             ended: matches!(event, "SessionEnd" | "sessionEnd"),
         }],
     };
-    let cwd = value[if provider == Provider::OpenCode {
-        "directory"
-    } else {
-        "cwd"
-    }]
-    .as_str()
-    .map(PathBuf::from)
-    .or_else(|| {
+    let cwd = value["cwd"].as_str().map(PathBuf::from).or_else(|| {
         if provider == Provider::Devin {
             context.devin_project_dir.clone()
         } else {
@@ -88,7 +65,7 @@ pub fn decode(provider: Provider, input: &[u8], context: &IngressContext) -> Res
         Provider::Claude => claude(&value, event, cwd.as_ref(), &mut batch.events)?,
         Provider::Codex => codex(&value, event, &mut batch.events)?,
         Provider::Cursor => cursor(&value, event, &mut batch.events)?,
-        Provider::OpenCode => opencode(&value, event, cwd.as_ref(), &mut batch.events)?,
+        Provider::OpenCode => unreachable!(),
         Provider::Devin => unavailable(
             &mut batch.events,
             "web_and_plan",
@@ -349,54 +326,6 @@ fn cursor(value: &Value, event: &str, events: &mut Vec<Observation>) -> Result<(
         events,
         "web_and_plan",
         "Normal CLI built-in Web and Plan schemas are unverified. Use ref add and plan attach; ACP is a separate runtime.",
-    );
-    Ok(())
-}
-
-fn opencode(
-    value: &Value,
-    event: &str,
-    cwd: Option<&PathBuf>,
-    events: &mut Vec<Observation>,
-) -> Result<()> {
-    if event == "tool.execute.after" && value["tool"] == "webfetch" {
-        reference(events, required(&value["args"], "url")?, None, "opened")?;
-    }
-    if let Some(plan) = value.get("plan") {
-        let path = required(plan, "path")?;
-        let cwd = cwd.ok_or("OpenCode plan session directory unavailable")?;
-        let source_path = PathBuf::from(path);
-        let root = value["worktree"]
-            .as_str()
-            .map(PathBuf::from)
-            .unwrap_or_else(|| cwd.clone());
-        if !source_path.starts_with(root.join(".opencode/plans"))
-            || source_path
-                .components()
-                .any(|c| c == std::path::Component::ParentDir)
-        {
-            return Err("OpenCode plan path is outside the session plan directory".into());
-        }
-        events.push(Observation::Plan {
-            plan_key: path.into(),
-            markdown: required(plan, "markdown")?.into(),
-            source_path: Some(source_path),
-            phase: if event == "tool.execute.after" && value["tool"] == "plan_exit" {
-                DocumentPhase::Approved
-            } else {
-                DocumentPhase::Draft
-            },
-        });
-    }
-    unavailable(
-        events,
-        "web",
-        "V1 webfetch URL observed. Tool title is not a page title; engine-specific search results are unverified.",
-    );
-    unavailable(
-        events,
-        "runtime",
-        "OpenCode V1 bridge is source-derived and fixture-tested. V2 and live hook delivery are unverified.",
     );
     Ok(())
 }

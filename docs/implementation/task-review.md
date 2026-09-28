@@ -1,5 +1,7 @@
 # Shell and mise task review
 
+Historical validation record. OpenCode V1 and its Node bridge were subsequently removed; see [current compatibility](../compatibility.md).
+
 The review found three gaps and one redundant check path:
 
 - The Rust dispatcher silently succeeded outside the checkout because it treated a missing Cargo.toml as the old infrastructure-only phase. Its callers now use native mise tasks, and the dispatcher is deleted. Task descriptions no longer imply Rust is optional.

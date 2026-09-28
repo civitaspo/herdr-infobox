@@ -1,5 +1,7 @@
 # Validation and remaining acceptance
 
+Historical validation record. OpenCode V1 and its Node bridge were subsequently removed; see [current compatibility](../compatibility.md).
+
 Validation uses temporary state, temporary Git repositories, synthetic versioned provider fixtures, and fake Herdr/reviewer processes. It does not establish live provider compatibility. No credential-consuming coding-agent session, live hook edit, or release publication was performed.
 
 ## Executed on macOS

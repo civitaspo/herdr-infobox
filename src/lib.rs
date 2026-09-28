@@ -11,3 +11,7 @@ pub mod adapters;
 pub mod annotate;
 pub mod doctor;
 pub mod herdr;
+
+pub mod opencode;
+pub mod opencode_sync;
+pub mod opencode_transport;
