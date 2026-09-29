@@ -66,7 +66,7 @@ pub fn connect(
         return Err("OpenCode connection requires an OpenCode session".into());
     }
     let binary = if binary.components().count() > 1 || binary.is_absolute() {
-        fs::canonicalize(binary)?
+        std::path::absolute(binary)?
     } else {
         binary
     };
@@ -92,7 +92,7 @@ pub fn connect(
         store,
         session,
         "available",
-        "Last OpenCode V2 export synchronized. Live coding-agent behavior remains unverified.",
+        "Last OpenCode V2 export synchronized.",
     )?;
     Ok(count)
 }
@@ -120,7 +120,7 @@ pub fn reconcile(paths: &Paths, store: &mut Store, session: &SessionSummary) -> 
                 store,
                 session,
                 "available",
-                "Last OpenCode V2 export synchronized. Live coding-agent behavior remains unverified.",
+                "Last OpenCode V2 export synchronized.",
             )?;
             Ok(count)
         }

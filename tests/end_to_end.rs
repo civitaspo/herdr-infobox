@@ -241,6 +241,81 @@ fn collector_returns_without_waiting_for_producer_to_close_stdin() -> Result<()>
 }
 
 #[test]
+fn cursor_registered_transcript_recovers_without_resupplying_file() -> Result<()> {
+    let dir = tempfile::tempdir()?;
+    let state = dir.path().join("state");
+    let native_id = "cursor-recovery";
+    let folder = dir.path().join(native_id);
+    fs::create_dir(&folder)?;
+    let file = folder.join(format!("{native_id}.jsonl"));
+    let request = serde_json::json!({"role":"assistant","message":{"content":[{
+        "type":"tool_use","name":"CallDynamicTool","input":{
+            "namespace":"cursor","toolName":"WebFetch","arguments":{"url":"https://example.com/recovery"}
+        }
+    }]}});
+    fs::write(&file, format!("{request}\n"))?;
+    cli(
+        &state,
+        &[
+            "session",
+            "add",
+            "--provider",
+            "cursor",
+            "--native-id",
+            native_id,
+        ],
+    );
+    cli(
+        &state,
+        &[
+            "reconcile",
+            "--session",
+            native_id,
+            "--file",
+            file.to_str().unwrap(),
+        ],
+    );
+    let before = cli(&state, &["ui", "--session", native_id, "--once"]);
+    assert!(before.contains("https://example.com/recovery"), "{before}");
+    assert!(before.contains("open_requested"), "{before}");
+
+    let plan = serde_json::json!({"role":"assistant","message":{"content":[{
+        "type":"tool_use","name":"CreatePlan","input":{
+            "name":"Recovery plan","plan":"# Recovery plan\nKeep this exact text.",
+            "todos":[{"id":"verify","content":"Verify recovery"}]
+        }
+    }]}});
+    fs::OpenOptions::new()
+        .append(true)
+        .open(&file)?
+        .write_all(format!("{plan}\n").as_bytes())?;
+    let failed_import = command(&state)
+        .args(["reconcile", "--session", native_id, "--file"])
+        .arg(dir.path().join("missing.jsonl"))
+        .output()?;
+    assert!(!failed_import.status.success());
+    let after = cli(&state, &["ui", "--session", native_id, "--once"]);
+    assert!(after.contains("Plan revisions 1"), "{after}");
+    assert!(after.contains("Proposed"), "{after}");
+    assert!(after.contains("Verify recovery"), "{after}");
+    cli(&state, &["reconcile", "--session", native_id]);
+    assert_eq!(
+        after,
+        cli(&state, &["ui", "--session", native_id, "--once"])
+    );
+
+    fs::remove_file(&file)?;
+    let failed = command(&state)
+        .args(["reconcile", "--session", native_id])
+        .output()?;
+    assert!(!failed.status.success());
+    let cached = cli(&state, &["ui", "--session", native_id, "--once"]);
+    assert!(cached.contains("Plan revisions 1"), "{cached}");
+    assert!(cached.contains("transcript_sync: unavailable"), "{cached}");
+    Ok(())
+}
+
+#[test]
 fn doctor_distinguishes_registration_from_runtime_without_exposing_content() -> Result<()> {
     let dir = tempfile::tempdir()?;
     cli(
@@ -281,5 +356,46 @@ fn doctor_distinguishes_registration_from_runtime_without_exposing_content() -> 
     assert!(!text.contains("private"));
     assert_eq!(report["hook_registration_is_not_execution"], true);
     assert_eq!(report["herdr"]["state"], "Unavailable");
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn transcript_fifo_without_writer_does_not_block() -> Result<()> {
+    let dir = tempfile::tempdir()?;
+    let fifo = dir.path().join("pipe");
+    assert!(Command::new("mkfifo").arg(&fifo).status()?.success());
+    cli(
+        dir.path(),
+        &[
+            "session",
+            "add",
+            "--provider",
+            "cursor",
+            "--native-id",
+            "fifo",
+        ],
+    );
+    let mut child = command(dir.path())
+        .args(["reconcile", "--session", "fifo", "--file"])
+        .arg(&fifo)
+        .stderr(Stdio::piped())
+        .stdout(Stdio::null())
+        .spawn()?;
+    let start = Instant::now();
+    loop {
+        if let Some(status) = child.try_wait()? {
+            assert!(!status.success());
+            break;
+        }
+        if start.elapsed() > Duration::from_secs(2) {
+            child.kill()?;
+            let _ = child.wait();
+            panic!("transcript reader blocked on a FIFO");
+        }
+        std::thread::sleep(Duration::from_millis(10));
+    }
+    let output = child.wait_with_output()?;
+    assert!(String::from_utf8_lossy(&output.stderr).contains("regular file"));
     Ok(())
 }

@@ -1,0 +1,11 @@
+{
+  "provider": "opencode",
+  "version": "2.0.15",
+  "parser_revision": "v2-export-2",
+  "source_revision": "6f3639d82ed0760091792189b78f8eeb44f699b1",
+  "origin": "Anonymized export from an isolated local coding session on 2026-09-29",
+  "runtime_tested": true,
+  "cli_transport_tested": true,
+  "runtime_scope": "Plan-agent read and webfetch, proposed Plan, resumed build-agent patch, idle markers, explicit-server export, infobox replay while UI closed, GitHub link and unstaged diff",
+  "not_verified": ["Plan approval or execution", "page titles", "task checklists", "Herdr pane controls", "annotate"]
+}

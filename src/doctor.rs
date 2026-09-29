@@ -79,7 +79,7 @@ pub fn report(paths: &Paths, store: &Store) -> Result<Value> {
     Ok(
         json!({"version":env!("CARGO_PKG_VERSION"),"database":store.health()?,
         "adapters":crate::adapters::status(paths)?,"opencode_v2_connected_sessions":opencode_sessions,"herdr":herdr,"annotate":annotate,
-        "spool_loss_counter":losses,"provider_runtime_verification":"Not performed; see fixture compatibility.json",
+        "spool_loss_counter":losses,"provider_runtime_verification":"Version- and collection-route-specific; see docs/compatibility.md and fixture compatibility.json",
         "hook_registration_is_not_execution":true}),
     )
 }

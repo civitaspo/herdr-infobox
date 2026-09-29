@@ -115,24 +115,7 @@ pub fn run(paths: &Paths, store: &mut Store, selector: Option<&str>, once: bool)
                         let _ = db.finish_path(&p, &result);
                     }
                 }
-                if let Ok(sources) = db.transcript_sources() {
-                    for (session, cursor) in sources {
-                        if session.key.provider == Provider::Codex {
-                            match crate::providers::read_codex_transcript(
-                                &cursor.source_path,
-                                &session,
-                                Some(cursor.clone()),
-                            ) {
-                                Ok(chunk) => {
-                                    let _ = db.commit_import(&chunk);
-                                }
-                                Err(_) => {
-                                    let _=db.diagnostic("transcript","Transcript unavailable or unsupported; run reconcile explicitly for details");
-                                }
-                            }
-                        }
-                    }
-                }
+                let _ = crate::transcripts::reconcile(&mut db, None);
                 if let Ok(herdr) = crate::herdr::Herdr::from_env()
                     && let Ok(snapshot) = herdr.snapshot().map(tab_snapshot)
                     && let Some((pane, key)) =

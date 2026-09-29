@@ -1,4 +1,4 @@
-//! OpenCode 2.0.18 projected exports; no V1 bridge payloads or inferred approvals.
+//! Verified OpenCode V2 projected exports, without inferred plan approvals.
 use crate::Result;
 use crate::model::{DocumentPhase, EventBatch, Observation, Provider, SessionKey, content_hash};
 use serde_json::Value;
@@ -96,7 +96,7 @@ pub fn decode_export(input: &[u8], session: &SessionKey) -> Result<Vec<EventBatc
         path(current.clone(), &current, "cwd"),
         capability(
             "runtime",
-            "OpenCode 2.0.18 export schema is source-derived and fixture-tested; live delivery is unverified.",
+            "OpenCode 2.0.15 collection was verified with an isolated coding session; 2.0.18 remains source- and fixture-tested.",
         ),
         capability(
             "plan_execution",
@@ -171,7 +171,7 @@ pub fn decode_export(input: &[u8], session: &SessionKey) -> Result<Vec<EventBatc
                 }
             }
             "agent-switched" | "model-switched" | "user" | "synthetic" | "system" | "skill"
-            | "shell" | "compaction" => {}
+            | "shell" | "compaction" | "idle" => {}
             _ => return Err("Unknown OpenCode message schema".into()),
         }
         if !events.is_empty() {

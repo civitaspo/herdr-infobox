@@ -1,0 +1,10 @@
+{
+  "provider": "cursor",
+  "version": "2026.09.26-dd393fe",
+  "parser_revision": ["cursor-transcript-2026.09.26-v1", "cursor-stream-2026.09.26-v1"],
+  "origin": "Anonymized local CLI captures on 2026-09-29",
+  "runtime_tested": true,
+  "runtime_scope": ["print Read and Write hooks", "print WebFetch and CreatePlan", "interactive Plan creation", "resume", "registered-source reconciliation with UI closed", "GitHub link and diff"],
+  "not_verified": ["interactive WebFetch", "page titles", "Plan approval and execution", "task transitions", "multi-repository sessions", "Herdr pane controls", "annotate"],
+  "limitations": ["durable transcript has no embedded session ID or tool results", "explicit native-ID source binding required", "changed Plan bodies have no verified revision lineage", "private database is not read"]
+}

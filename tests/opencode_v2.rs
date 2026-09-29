@@ -143,3 +143,29 @@ fn missing_previous_location_does_not_attribute_old_relative_paths_to_current_wo
     assert!(!batches.iter().flat_map(|batch| &batch.events).any(|event| matches!(event, Observation::Path { path, .. } if path.to_str() == Some("src/main.rs"))));
     assert!(batches.iter().flat_map(|batch| &batch.events).any(|event| matches!(event, Observation::Capability { feature, .. } if feature == "repositories")));
 }
+
+#[test]
+fn live_2_0_15_export_with_idle_markers_preserves_collected_information() {
+    let batches = decode_export(
+        include_bytes!("../fixtures/opencode/v2.0.15/export.json"),
+        &session(),
+    )
+    .unwrap();
+    let events: Vec<_> = batches.iter().flat_map(|batch| &batch.events).collect();
+    assert!(events.iter().any(
+        |event| matches!(event, Observation::Path { path, .. } if path.ends_with("sample.txt"))
+    ));
+    assert!(events.iter().any(|event| matches!(event, Observation::Reference { url, relation, .. } if url == "https://example.com" && relation == "opened")));
+    assert!(events.iter().any(|event| matches!(
+        event,
+        Observation::Plan {
+            phase: DocumentPhase::Proposed,
+            ..
+        }
+    )));
+    assert!(
+        !events
+            .iter()
+            .any(|event| matches!(event, Observation::Execution { .. }))
+    );
+}
