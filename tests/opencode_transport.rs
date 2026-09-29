@@ -85,7 +85,7 @@ fn excessive_output_and_hanging_commands_are_bounded() {
 }
 
 #[test]
-#[ignore = "requires an explicitly supplied OpenCode 2.0.18 binary; never starts a coding session"]
+#[ignore = "requires an explicitly supplied verified OpenCode binary; never starts a coding session"]
 fn released_cli_reads_a_fixture_http_server() {
     use std::{
         io::{Read, Write},
@@ -178,4 +178,14 @@ fn concurrent_fixture_processes_preserve_version_checks() {
             });
         }
     });
+}
+
+#[test]
+fn verified_2_0_15_cli_and_server_export() {
+    let (_directory, binary) = executable("success-2.0.15");
+    let bytes = export(&binary, "http://localhost:4096", "ses_fixture").unwrap();
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&bytes).unwrap()["data"]["info"]["id"],
+        "ses_fixture"
+    );
 }

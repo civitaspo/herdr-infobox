@@ -1,0 +1,257 @@
+{
+  "data": {
+    "info": {
+      "id": "ses_fixture",
+      "projectID": "project_fixture",
+      "agent": "build",
+      "time": {
+        "created": 1790646457110,
+        "updated": 1790646518193,
+        "idle": 1790646524126
+      },
+      "location": {
+        "directory": "/workspace/project"
+      },
+      "outcome": "succeeded"
+    },
+    "messages": [
+      {
+        "id": "msg_fixture_1",
+        "time": {
+          "created": 1790646457113
+        },
+        "type": "agent-switched",
+        "agent": "plan",
+        "previous": "plan"
+      },
+      {
+        "id": "msg_fixture_2",
+        "time": {
+          "created": 1790646457120
+        },
+        "text": "Anonymized prompt or provider instruction.",
+        "type": "synthetic"
+      },
+      {
+        "id": "msg_fixture_3",
+        "time": {
+          "created": 1790646457121
+        },
+        "text": "Anonymized prompt or provider instruction.",
+        "files": [
+
+        ],
+        "type": "user"
+      },
+      {
+        "id": "msg_fixture_4",
+        "time": {
+          "created": 1790646457167,
+          "streamed": 1790646461179,
+          "completed": 1790646461384
+        },
+        "type": "assistant",
+        "agent": "plan",
+        "content": [
+          {
+            "type": "tool",
+            "id": "call_fixture_5",
+            "name": "read",
+            "executed": false,
+            "state": {
+              "status": "completed",
+              "input": {
+                "path": "sample.txt"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Read file sample.txt, lines 1-1\n1: before"
+                }
+              ],
+              "metadata": {
+                "truncated": false
+              }
+            },
+            "time": {
+              "created": 1790646461055,
+              "ran": 1790646461060,
+              "completed": 1790646461065
+            }
+          },
+          {
+            "type": "tool",
+            "id": "call_fixture_6",
+            "name": "webfetch",
+            "executed": false,
+            "state": {
+              "status": "completed",
+              "input": {
+                "url": "https://example.com",
+                "format": "markdown"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "This domain is for use in documentation examples without needing permission. This is not a service, avoid relying on it for testing and monitoring purposes.\n\n[Learn more](https://iana.org/help/example-domains)"
+                }
+              ],
+              "metadata": {
+                "contentType": "text/html; charset=utf-8",
+                "truncated": false
+              }
+            },
+            "time": {
+              "created": 1790646461063,
+              "ran": 1790646461166,
+              "completed": 1790646461355
+            }
+          }
+        ],
+        "finish": "tool-calls"
+      },
+      {
+        "id": "msg_fixture_7",
+        "time": {
+          "created": 1790646461420,
+          "streamed": 1790646464117,
+          "completed": 1790646464143
+        },
+        "type": "assistant",
+        "agent": "plan",
+        "content": [
+          {
+            "type": "text",
+            "text": "# Proposed change\n\nChange sample.txt from before to after.",
+            "state": {
+              "itemId": "msg_fixture_8",
+              "phase": "final_answer"
+            }
+          }
+        ],
+        "finish": "stop"
+      },
+      {
+        "id": "msg_fixture_9",
+        "time": {
+          "created": 1790646464145
+        },
+        "type": "idle",
+        "outcome": "succeeded"
+      },
+      {
+        "id": "msg_fixture_10",
+        "time": {
+          "created": 1790646518187
+        },
+        "type": "agent-switched",
+        "agent": "build",
+        "previous": "plan"
+      },
+      {
+        "id": "msg_fixture_11",
+        "time": {
+          "created": 1790646518196
+        },
+        "text": "Anonymized prompt or provider instruction.",
+        "type": "synthetic"
+      },
+      {
+        "id": "msg_fixture_12",
+        "time": {
+          "created": 1790646518197
+        },
+        "text": "Anonymized prompt or provider instruction.",
+        "files": [
+
+        ],
+        "type": "user"
+      },
+      {
+        "id": "msg_fixture_13",
+        "time": {
+          "created": 1790646518225,
+          "streamed": 1790646522354,
+          "completed": 1790646522435
+        },
+        "type": "assistant",
+        "agent": "build",
+        "content": [
+          {
+            "type": "text",
+            "text": "Changed sample.txt.",
+            "state": {
+              "itemId": "msg_fixture_14",
+              "phase": "commentary"
+            }
+          },
+          {
+            "type": "tool",
+            "id": "call_fixture_15",
+            "name": "patch",
+            "executed": false,
+            "state": {
+              "status": "completed",
+              "input": {
+                "patchText": "*** Begin Patch\n*** Update File: sample.txt\n@@\n-before\n+after\n*** End Patch"
+              },
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Success. Updated the following files:\nM sample.txt"
+                }
+              ],
+              "metadata": {
+                "files": [
+                  {
+                    "file": "sample.txt",
+                    "patch": "Index: /workspace/project/sample.txt\n===================================================================\n--- /workspace/project/sample.txt\n+++ /workspace/project/sample.txt\n@@ -1,1 +1,1 @@\n-before\n+after\n",
+                    "status": "modified",
+                    "additions": 1,
+                    "deletions": 1
+                  }
+                ],
+                "truncated": false
+              }
+            },
+            "time": {
+              "created": 1790646521760,
+              "ran": 1790646522275,
+              "completed": 1790646522283
+            }
+          }
+        ],
+        "finish": "tool-calls"
+      },
+      {
+        "id": "msg_fixture_16",
+        "time": {
+          "created": 1790646522470,
+          "streamed": 1790646524074,
+          "completed": 1790646524123
+        },
+        "type": "assistant",
+        "agent": "build",
+        "content": [
+          {
+            "type": "text",
+            "text": "Changed sample.txt.",
+            "state": {
+              "itemId": "msg_fixture_17",
+              "phase": "final_answer"
+            }
+          }
+        ],
+        "finish": "stop"
+      },
+      {
+        "id": "msg_fixture_18",
+        "time": {
+          "created": 1790646524126
+        },
+        "type": "idle",
+        "outcome": "succeeded"
+      }
+    ]
+  }
+}

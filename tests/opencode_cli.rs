@@ -59,9 +59,10 @@ fn v2_connection_recovers_history_and_preserves_state_on_failure() {
     }
     let input = temp.path().join("export.json");
     fs::write(&input, serde_json::to_vec(&export).unwrap()).unwrap();
-    let executable = temp.path().join("opencode");
-    fs::write(&executable, format!("#!/bin/sh\ncase \"$1\" in --version) echo opencode v2.0.18;; *) case \"$5\" in /api/info) echo '{{\"version\":\"2.0.18\"}}';; *) cat '{}' ;; esac;; esac\n", input.display())).unwrap();
+    let executable = temp.path().join("dispatcher");
+    fs::write(&executable, format!("#!/bin/sh\n[ \"${{0##*/}}\" = opencode ] || exit 91\ncase \"$1\" in --version) echo opencode v2.0.18;; *) case \"$5\" in /api/info) echo '{{\"version\":\"2.0.18\"}}';; *) cat '{}' ;; esac;; esac\n", input.display())).unwrap();
     fs::set_permissions(&executable, fs::Permissions::from_mode(0o700)).unwrap();
+    std::os::unix::fs::symlink(&executable, temp.path().join("opencode")).unwrap();
     success(
         &state,
         &[
@@ -93,6 +94,20 @@ fn v2_connection_recovers_history_and_preserves_state_on_failure() {
         connected.status.success(),
         "{}",
         String::from_utf8_lossy(&connected.stderr)
+    );
+
+    success(
+        &state,
+        &[
+            "opencode",
+            "connect",
+            "--session",
+            "ses_fixture",
+            "--server",
+            "http://127.0.0.1:4096",
+            "--binary",
+            temp.path().join("opencode").to_str().unwrap(),
+        ],
     );
 
     {

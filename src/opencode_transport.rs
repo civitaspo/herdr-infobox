@@ -2,7 +2,7 @@ use crate::{Result, git};
 use std::{path::Path, process::Command, time::Duration};
 use url::Url;
 
-pub const VERIFIED_VERSION: &str = "2.0.18";
+pub const VERIFIED_VERSIONS: &[&str] = &["2.0.15", "2.0.18"];
 
 pub fn export(binary: &Path, server: &str, native_id: &str) -> Result<Vec<u8>> {
     let server_url = Url::parse(server).map_err(|_| "Invalid OpenCode server URL")?;
@@ -21,13 +21,15 @@ pub fn export(binary: &Path, server: &str, native_id: &str) -> Result<Vec<u8>> {
         return Err("OpenCode session ID must not be empty".into());
     }
     let version = run(Command::new(binary).arg("--version"), 4096)?;
-    if std::str::from_utf8(&version)
+    if !std::str::from_utf8(&version)
         .map(str::trim)
         .ok()
         .and_then(|version| version.strip_prefix("opencode v"))
-        != Some(VERIFIED_VERSION)
+        .is_some_and(|version| VERIFIED_VERSIONS.contains(&version))
     {
-        return Err("OpenCode CLI version is unverified; this integration requires 2.0.18".into());
+        return Err(
+            "OpenCode CLI version is unverified; this integration requires 2.0.15 or 2.0.18".into(),
+        );
     }
     let info = run(
         Command::new(binary).args(["api", "--server", server_url.as_str(), "GET", "/api/info"]),
@@ -35,9 +37,14 @@ pub fn export(binary: &Path, server: &str, native_id: &str) -> Result<Vec<u8>> {
     )?;
     let info: serde_json::Value =
         serde_json::from_slice(&info).map_err(|_| "Invalid OpenCode server info")?;
-    if info.get("version").and_then(serde_json::Value::as_str) != Some(VERIFIED_VERSION) {
+    if !info
+        .get("version")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|version| VERIFIED_VERSIONS.contains(&version))
+    {
         return Err(
-            "OpenCode server version is unverified; this integration requires 2.0.18".into(),
+            "OpenCode server version is unverified; this integration requires 2.0.15 or 2.0.18"
+                .into(),
         );
     }
     let mut endpoint = server_url.clone();
