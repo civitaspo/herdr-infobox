@@ -19,6 +19,9 @@ uuid = { version = "1.26.1", features = ["v4", "serde"] }
 
 toml = { version = "1.1.4", default-features = false, features = ["parse", "std", "serde"] }
 
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "=1.1.5", features = ["fs"] }
+
 [dev-dependencies]
 tempfile = "=3.27.0"
 rustix = { version = "=1.1.5", features = ["fs", "pty", "termios"] }

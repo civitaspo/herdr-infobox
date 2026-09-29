@@ -367,20 +367,14 @@ fn run(cli: Cli) -> Result<()> {
                         .as_deref()
                         .ok_or("--session is required with --file")?,
                 )?;
-                if session.key.provider != Provider::Codex {
-                    return Err(
-                        "Only the verified Codex legacy transcript parser is available".into(),
-                    );
+                if let Err(error) = herdr_infobox::transcripts::import(&mut store, &session, &file)
+                {
+                    sync_error = Some(error);
                 }
-                let file = std::fs::canonicalize(file)?;
-                let cursor = store.cursor(
-                    &session.id,
-                    &file,
-                    herdr_infobox::providers::CODEX_TRANSCRIPT_PARSER,
-                )?;
-                let chunk =
-                    herdr_infobox::providers::read_codex_transcript(&file, &session, cursor)?;
-                store.commit_import(&chunk)?;
+            }
+            if let Err(error) = herdr_infobox::transcripts::reconcile(&mut store, selected.as_ref())
+            {
+                sync_error = Some(error);
             }
             let count = ingest::drain(&paths, &mut store)?;
             for pending in store.pending_paths()? {
@@ -399,7 +393,7 @@ fn run(cli: Cli) -> Result<()> {
                 println!("{}", serde_json::to_string_pretty(&report)?);
             } else {
                 println!(
-                    "herdr-infobox {}\nDatabase ready. {} registered sessions.\nProvider runtime verification pending. Annotation delivery is copy only.",
+                    "herdr-infobox {}\nDatabase ready. {} registered sessions.\nProvider compatibility is version-specific; see docs/compatibility.md. Annotation delivery is copy only.",
                     env!("CARGO_PKG_VERSION"),
                     store.sessions()?.len()
                 );

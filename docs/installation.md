@@ -47,7 +47,7 @@ A collector stores only enrolled sessions. Register the exact native session wit
 
 ## Connect OpenCode V2
 
-OpenCode V1 is not supported. Use the verified CLI and server version 2.0.18.
+Use CLI and server version 2.0.15 or 2.0.18. OpenCode V1 is not supported.
 No OpenCode plugin, JavaScript bridge, or provider hook configuration is needed.
 
 Enroll the native session, then select the already running server explicitly:
@@ -58,7 +58,8 @@ herdr-infobox opencode connect --session ses_EXACT_NATIVE_ID --server http://127
 herdr-infobox reconcile --session ses_EXACT_NATIVE_ID
 ```
 
-Use `--binary /absolute/path/to/opencode` if the V2 executable is not on PATH.
+Use `--binary opencode2` for an executable named `opencode2`, or pass its absolute path.
+Executable symlinks, including mise shims, retain their command name.
 The connection is saved only after a successful import. The CLI and server version
 are both checked. URLs containing credentials, query strings, or fragments are rejected.
 The OpenCode CLI handles `OPENCODE_PASSWORD`; infobox does not save passwords.
@@ -78,6 +79,39 @@ successful session outcome does not imply Plan approval or execution.
 Use `plan attach` for explicit files and `plan select` for manual execution selection.
 
 Devin automatic settings mutation is unavailable because individual tool contracts and imported-hook interactions need runtime verification. Its conservative parser can consume documented lifecycle fixtures. Do not label that parser coverage as a verified installed integration.
+
+## Register a Cursor transcript
+
+Cursor hooks collect workspace information. To collect built-in Web requests and
+Plan documents, register the transcript for the exact native conversation ID:
+
+```sh
+herdr-infobox session add --provider cursor --native-id EXACT_CONVERSATION_ID
+herdr-infobox reconcile --session EXACT_CONVERSATION_ID --file /absolute/path/EXACT_CONVERSATION_ID/EXACT_CONVERSATION_ID.jsonl
+herdr-infobox ui --session EXACT_CONVERSATION_ID
+```
+
+Use the JSONL file in Cursor's project `agent-transcripts` directory. Both its
+filename and parent directory must match the selected native ID. This is an
+explicit source binding because the transcript does not embed a conversation ID.
+Do not select a file by its modification time or working directory alone.
+
+After the first successful import, the UI worker refreshes the registered file.
+Run `reconcile --session EXACT_CONVERSATION_ID` to recover changes while the UI
+is closed. Registration survives infobox restarts. Partial final records wait
+for the next read; rewrites and repeated imports do not duplicate observations.
+Files over 16 MiB or unknown schemas report an error and preserve cached data.
+
+The verified Cursor transcript format records tool inputs without results.
+Web URLs appear as `open_requested`, with unavailable titles and fetch results.
+Plan text appears as proposed, with approval and execution unknown. Task
+definitions remain separate from Plan completion.
+
+If you already save a print-mode `--output-format stream-json` run, register that
+file with the same `reconcile --session ... --file ...` command. Every record must
+contain the selected native session ID. Explicit successful WebFetch results add
+`opened`; ordinary assistant text is not treated as a fetched title or Plan.
+This imports an existing capture and does not start or wrap Cursor.
 
 ## Upgrade
 

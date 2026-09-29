@@ -324,8 +324,8 @@ fn cursor(value: &Value, event: &str, events: &mut Vec<Observation>) -> Result<(
     }
     unavailable(
         events,
-        "web_and_plan",
-        "Normal CLI built-in Web and Plan schemas are unverified. Use ref add and plan attach; ACP is a separate runtime.",
+        "cursor_hooks",
+        "Built-in Web and Plan calls require a registered Cursor transcript or saved stream-json file. Use reconcile --session SESSION --file PATH.",
     );
     Ok(())
 }
@@ -400,7 +400,7 @@ pub fn read_codex_transcript(
     if session.key.provider != Provider::Codex {
         return Err("Only the source-verified Codex JSONL reader is available".into());
     }
-    let file = std::fs::File::open(path)?;
+    let file = crate::transcripts::open(path)?;
     let metadata = file.metadata()?;
     if !metadata.is_file() {
         return Err("Transcript must be a regular file".into());

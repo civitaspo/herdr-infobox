@@ -731,7 +731,7 @@ fn apply_batch(tx: &Connection, batch: &EventBatch) -> Result<bool> {
                 for task in tasks {
                     exec(
                         tx,
-                        "INSERT INTO plan_tasks(session,namespace,task_id,text,status,parent_id) VALUES(?1,?2,?3,?4,?5,?6) ON CONFLICT(session,namespace,task_id) DO UPDATE SET text=excluded.text,status=excluded.status,parent_id=excluded.parent_id",
+                        "INSERT INTO plan_tasks(session,namespace,task_id,text,status,parent_id) VALUES(?1,?2,?3,?4,?5,?6) ON CONFLICT(session,namespace,task_id) DO UPDATE SET text=excluded.text,status=CASE WHEN excluded.status='unknown' THEN plan_tasks.status ELSE excluded.status END,parent_id=excluded.parent_id",
                         params![
                             sid,
                             namespace,
