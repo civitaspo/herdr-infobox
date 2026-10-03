@@ -68,6 +68,29 @@ fn toggle_ensure_and_manual_close_do_not_duplicate_or_resurrect() {
         "open\n"
     );
 }
+
+#[test]
+fn split_pane_targets_a_pane_without_a_workspace_selector() {
+    let (temp, herdr, _) = fixture();
+    let binary = &herdr.binary;
+    fs::write(
+        binary,
+        format!(
+            "#!/bin/sh\nfor arg in \"$@\"; do\n  [ \"$arg\" != --workspace ] || exit 1\ndone\nprintf '%s\\n' \"$@\" > '{}'/args\ncat '{}'/opened.json\n",
+            temp.path().display(),
+            temp.path().display(),
+        ),
+    )
+    .unwrap();
+    let target: Pane = serde_json::from_value(pane("agent", "terminal-agent", true)).unwrap();
+    assert_eq!(
+        herdr.open("info", &target, &[], false).unwrap().pane_id,
+        "info"
+    );
+    let args = fs::read_to_string(temp.path().join("args")).unwrap();
+    assert!(args.contains("--target-pane\nagent\n"));
+    assert!(args.contains("--placement\nsplit\n"));
+}
 #[test]
 fn pane_reuse_and_plugin_focus_do_not_change_native_identity() {
     let agent: Pane = serde_json::from_value(pane("agent", "one", true)).unwrap();

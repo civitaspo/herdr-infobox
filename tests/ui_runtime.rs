@@ -48,8 +48,11 @@ impl Pane {
         )
         .unwrap();
         fcntl_setfl(&master, OFlags::NONBLOCK).unwrap();
+        command.arg("ui");
+        if !session.is_empty() {
+            command.args(["--session", session]);
+        }
         let child = command
-            .args(["ui", "--session", session])
             .stdin(Stdio::from(slave.try_clone().unwrap()))
             .stdout(Stdio::from(slave.try_clone().unwrap()))
             .stderr(Stdio::from(slave))
@@ -136,6 +139,28 @@ fn cli(root: &Path, args: &[&str]) -> String {
         String::from_utf8_lossy(&output.stderr)
     );
     String::from_utf8(output.stdout).unwrap().trim().into()
+}
+
+#[test]
+fn empty_session_ui_stays_open_and_accepts_a_later_registration() {
+    let temp = tempfile::tempdir().unwrap();
+    let mut pane = Pane::start(command(temp.path()), "");
+    pane.until(|bytes| String::from_utf8_lossy(bytes).contains("No sessions."));
+    assert!(pane.child.try_wait().unwrap().is_none());
+    cli(
+        temp.path(),
+        &[
+            "session",
+            "add",
+            "--provider",
+            "claude",
+            "--native-id",
+            "later",
+        ],
+    );
+    pane.until(|bytes| String::from_utf8_lossy(bytes).contains("later"));
+    pane.send(b"q");
+    assert!(pane.child.wait().unwrap().success());
 }
 
 fn executable(path: &Path, content: &str) {

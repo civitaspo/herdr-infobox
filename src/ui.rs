@@ -54,11 +54,45 @@ pub fn run(paths: &Paths, store: &mut Store, selector: Option<&str>, once: bool)
     if let Some(selector) = selector {
         store.resolve(selector)?;
     }
-    let sessions = store.sessions()?;
-    if sessions.is_empty() {
+    if store.sessions()?.is_empty() && once {
         println!("No sessions. Register one with session add --provider PROVIDER --native-id ID.");
         return Ok(());
     }
+    if store.sessions()?.is_empty() {
+        terminal::enable_raw_mode()?;
+        let _terminal = Terminal;
+        execute!(io::stdout(), terminal::EnterAlternateScreen, cursor::Hide)?;
+        while store.sessions()?.is_empty() {
+            execute!(
+                io::stdout(),
+                cursor::MoveTo(0, 0),
+                terminal::Clear(ClearType::All)
+            )?;
+            print!(
+                "Info\r\n\r\nNo sessions. Waiting for an identified agent session.\r\nRegister one with session add --provider PROVIDER --native-id ID.\r\n\r\nq: close"
+            );
+            io::stdout().flush()?;
+            if event::poll(Duration::from_secs(2))?
+                && let Event::Key(key) = event::read()?
+                && (key.code == KeyCode::Char('q')
+                    || (key.code == KeyCode::Char('c')
+                        && key.modifiers.contains(KeyModifiers::CONTROL)))
+            {
+                return Ok(());
+            }
+            if let Some(herdr) = &herdr
+                && let Ok(snapshot) = herdr.snapshot().map(tab_snapshot)
+                && let Some((pane, key)) = crate::herdr::follow(
+                    &snapshot,
+                    std::env::var("INFOBOX_TARGET_PANE").ok().as_deref(),
+                    &paths.host_id,
+                )
+            {
+                bind_pane(store, &pane, &key)?;
+            }
+        }
+    }
+    let sessions = store.sessions()?;
     let instance = herdr
         .as_ref()
         .and_then(|h| h.instance().ok())

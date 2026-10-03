@@ -150,8 +150,6 @@ impl Herdr {
             "split",
             "--target-pane",
             &target.pane_id,
-            "--workspace",
-            &target.workspace_id,
             "--direction",
             "right",
             if focus { "--focus" } else { "--no-focus" },
