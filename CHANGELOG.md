@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
+- prepare the initial stable release automatically (#24)
 - update rust crate turso to v0.8.1 (#19)
 - update rust crate turso to v0.8.0 (#18)
 - recover local OpenCode and Cursor session information (#17)
@@ -31,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Maintenance
 
+- update jdx/mise-action action to v5 (#16)
 - update rust crate uuid to v1.27.0 (#21)
 - update dependency jdx/mise to v2026.9.16 (#15)
 - update dependency rust to v1.99.0 (#20)
