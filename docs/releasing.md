@@ -46,7 +46,7 @@ The initial `.release-version` is `0.0.0`. git-cliff uses stable `vX.Y.Z` tags:
 - Breaking changes bump minor while the major version is zero, and major after 1.0.0.
 - Release-preparation commits are excluded from the changelog.
 
-Before the first stable tag, explicitly select the first version. For example:
+With no stable tag, git-cliff starts automatic releases at `0.1.0`. To choose a prerelease instead, explicitly select its version. For example:
 
 ```bash
 gh workflow run release-pr.yml -R civitaspo/herdr-infobox -f version=0.0.1-pre.1

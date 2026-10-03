@@ -56,5 +56,4 @@ commit_parsers = [
 # While major is 0: breaking → minor, feat → minor, everything else → patch.
 features_always_bump_minor = true
 breaking_always_bump_major = false
-# With no stable tag yet, this is returned as-is, so the first release needs an explicit version.
-initial_tag = "v0.0.0"
+initial_tag = "v0.1.0"
