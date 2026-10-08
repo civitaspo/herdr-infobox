@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Maintenance
 
+- route human merge requests through Securefix (#33)
 - update rust crate toml to v1.1.7 (#35)
 - update dependency jdx/mise to v2026.10.4 (#34)
 - update dependency jdx/mise to v2026.10.3 (#31)
