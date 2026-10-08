@@ -67,3 +67,7 @@ If Securefix pushes a prepare commit but reports that the release PR already exi
 For a failed tag/publish run, inspect both client and server workflow summaries. Reuse the existing immutable tag only when its commit matches the intended release; never force-update it. The reusable Release Tag workflow supports a manual `merge_sha` retry after checking the documented contract.
 
 End-to-end tag and publication verification requires a separately approved release PR merge. The repository setup itself does not publish a release.
+
+## Merge requests
+
+A human requests the release merge by posting `/merge` on the pull request. Securefix performs the squash merge after the required checks and review pass. Only `civitaspo` may request it; release pull requests are not automerged. See the shared [merge policy](https://github.com/civitaspo/securefix-server/blob/main/docs/merging.md).
