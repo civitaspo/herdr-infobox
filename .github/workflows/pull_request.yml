@@ -28,6 +28,7 @@ jobs:
     uses: ./.github/workflows/workflow_call_pr.yml
     permissions:
       contents: read
+      attestations: read
       pull-requests: read
     with:
       changed_title_only: ${{ github.event.action == 'edited' && github.event.changes.title != null && github.event.changes.body == null && github.event.changes.base == null && fromJSON('true') || fromJSON('false') }}
