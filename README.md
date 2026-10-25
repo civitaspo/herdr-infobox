@@ -441,7 +441,7 @@ See the [development guide](docs/development.md) for the data flow, source map, 
 - [Project scope](docs/project-scope.md) defines implementation and infrastructure boundaries.
 - [Contributing](CONTRIBUTING.md) and [repository guidelines](AGENTS.md) define contribution policy.
 - [Security reporting](SECURITY.md) describes private vulnerability reporting.
-- [Release procedures](docs/releasing.md) and [Securefix configuration](docs/securefix.md) describe repository automation.
+- [Release procedures](docs/releasing.md) and [Automation configuration](docs/securefix.md) describe repository automation.
 
 ## License
 

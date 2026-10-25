@@ -18,8 +18,12 @@ herdr-infobox is a planned Rust Herdr plugin that displays session repositories,
 
 - Pin external actions and reusable workflows to full commit SHAs.
 - Set `persist-credentials: false` on checkout steps.
-- Use minimal workflow permissions and explicit secrets, never `secrets: inherit`.
-- Keep strong credentials on civitaspo/securefix-server. This client may hold only its Securefix client app private key.
+- Use minimal workflow permissions and explicit secrets. Only the three managed
+  request callers and shared release publisher use `secrets: inherit`, because
+  their shared workflows consume the Client App key. Keep lint exceptions scoped
+  to those jobs.
+- Keep Server and Approver App keys only in the `csm-ci` environment of
+  `civitaspo/csm-ci-server`. This client holds only the Client App key.
 - Keep the required CI context named `status-check`.
 - Do not edit CHANGELOG.md outside release/next; git-cliff owns release notes.
 - See docs/securefix.md and docs/releasing.md before changing automation.
