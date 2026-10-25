@@ -1,31 +1,22 @@
 # Releasing
 
-Releases use the shared Client/Server Model in [securefix-server](https://github.com/civitaspo/securefix-server/blob/main/docs/client-releases.md). The client wrappers pin reusable workflows to an immutable commit.
+This repository uses [csm-ci-actions](https://github.com/civitaspo/csm-ci-actions/blob/main/docs/release-pr.md) hosted by [civitaspo/csm-ci-server](https://github.com/civitaspo/csm-ci-server).
 
 ## Flow
 
-1. Squash-merge a reviewed PR to main using its Conventional Commit title.
-2. **Release PR** runs git-cliff and asks Securefix to create or update signed commits on `release/next`, changing `.release-version` and `CHANGELOG.md`.
-3. **Release PR Sync** updates an existing release PR's title and body.
-4. A maintainer explicitly squash-merges `chore(release): vX.Y.Z`. Never enable auto-merge for release PRs.
-5. **Release Tag** creates an annotated tag at the squash merge commit and requests server publication through a label.
-6. The server validates the allowlist, workflow run, tag ancestry, and expected merge SHA, then creates and publishes a draft GitHub Release.
+1. Squash-merge a reviewed change to `main` through `/merge`.
+2. **csm-ci-release-pr** runs git-cliff and asks the server to create or update signed commits on `release/next`. It updates `CHANGELOG.md`, `.release-version`, and the root package versions in `Cargo.toml` and `Cargo.lock`.
+3. The existing PR autofix job runs the version synchronizer and submits the corresponding `herdr-plugin.toml` version update through `actions/client/securefix`. The first check run may fail until that signed follow-up commit arrives; require passing full CI on the final head.
+4. Review the generated `release-pr: chore(release): vX.Y.Z` PR. The owner comments `/approve` for the current head, waits for required checks and policy, then comments `/merge`. Release PRs are never automerged.
+5. **csm-ci-release** requests publication. The server verifies the merged release PR, creates an annotated tag at its squash merge, and publishes an immutable GitHub Release with `SHA256SUMS` and provenance attestation.
 
-The server allowlist entry is `civitaspo/herdr-infobox` with `publish: github-release`. No GPG key, bot PAT, or server app key is stored here.
+The server configuration uses `release.build_type: none`. Releases remain source-only; there are no published binary assets. Local packaging below is separate from publication. A future binary strategy must be reviewed before adding any target or uploaded asset.
 
-## Current publication scope
-
-The server still publishes **source-only GitHub Releases**. Local binary packaging is available, but this change does not add asset upload, crates.io publication, release dispatch, or a new server strategy.
-
-Before publishing binaries, review a server publication strategy that builds and verifies every intended target, uploads all assets to the draft, and publishes only after the asset set is complete. The current `publish: github-release` allowlist remains unchanged. Do not upload assets after publication when immutable releases are enabled.
+The preparation workflow skips release commits to avoid duplicate PRs before the tag exists. Workflow dispatch accepts an optional explicit semantic version for a real release. The publish caller accepts only a merged, same-repository `release/next` PR targeting the default branch.
 
 ## Version synchronization
 
-`.release-version` is the version authority. Run `bash scripts/sync-version.sh` to update the root package in Cargo.toml and Cargo.lock and the top-level version in herdr-plugin.toml. The launcher compiles a standard-library-only Rust utility with rustc, so it can repair stale Cargo metadata without first asking Cargo to resolve that metadata. The script leaves dependency versions and the minimum Herdr version unchanged. It accepts stable versions and prereleases, rejects invalid numeric identifiers, and validates all three destinations before writing.
-
-`bash scripts/sync-version.sh --check` reports mismatches without writing. All Rust lint, test, and build entrypoints run this check. The test entrypoint also exercises synchronization in temporary fixtures, including a prerelease, an invalid version, and an unrelated lockfile package.
-
-The shared release preparer continues to update `.release-version` and CHANGELOG.md. The existing PR autofix job synchronizes the three package files and submits the resulting change through its existing Securefix action. It does not push directly or gain additional permissions. A release PR may initially fail the version check until that signed follow-up commit arrives. Review the synchronized versions and require green CI before explicitly merging the release PR. If Securefix cannot submit the change, perform the same synchronization on the release branch through the normal signed PR process. Never bypass the check.
+`.release-version` is the version authority. `bash scripts/sync-version.sh` synchronizes the root package in `Cargo.toml` and `Cargo.lock` and the top-level version in `herdr-plugin.toml`. It leaves dependencies and the minimum Herdr version unchanged and validates every destination before writing. `--check` reports mismatches without writing. The existing Rust lint, test, and build entrypoints require agreement.
 
 ## Preparing a local binary archive
 
@@ -39,35 +30,17 @@ Creating an archive does not publish a release. Keep publication behind the exis
 
 ## Version policy
 
-The initial `.release-version` is `0.0.0`. git-cliff uses stable `vX.Y.Z` tags:
-
-- `fix:` and other releasable changes bump patch.
-- `feat:` bumps minor.
-- Breaking changes bump minor while the major version is zero, and major after 1.0.0.
-- Release-preparation commits are excluded from the changelog.
-
-With no stable tag, git-cliff starts automatic releases at `0.1.0`. To choose a prerelease instead, explicitly select its version. For example:
+`cliff.toml` controls inferred versions. While major is zero, breaking changes and `feat:` commits bump the minor version; other releasable changes bump the patch version. Release preparation commits do not produce another release.
 
 ```bash
-gh workflow run release-pr.yml -R civitaspo/herdr-infobox -f version=0.0.1-pre.1
+mise exec -- git cliff --bumped-version
+gh workflow run csm-ci-release-pr.yml -R civitaspo/herdr-infobox -f version=X.Y.Z
 ```
 
-This only requests a release PR. Review and explicitly merge that PR to publish. Do not run it solely to test setup without intending to create that release.
+Dispatch requests a real release PR. Review the version and explicitly request its merge. Published tags and releases are immutable.
 
-Pre-release tags do not become the base for automatic stable bumps. A later main push can rewrite an open explicit pre-release PR to a computed stable version; dispatch the explicit version again if needed. Tags are permanent once published.
+## Credentials and recovery
 
-The server handles the difference between the release branch head and the squash merge SHA; tag verification must use the latter. A label description longer than GitHub's limit omits the SHA and lets the server resolve it from the merged PR.
+Only the Client App key lives here; see [securefix.md](securefix.md). Strong credentials stay in the server's `csm-ci` environment. The managed `release-tags` ruleset restricts `v*` tag creation to the Server App. General tag integrity protection remains active.
 
-## Validation and recovery
-
-`mise run test` checks the 0.x version bump policy in isolated temporary repositories. `mise exec -- git cliff --bumped-version` previews the current proposed version.
-
-If Securefix pushes a prepare commit but reports that the release PR already exists, inspect `release/next` and **Release PR Sync** before retrying. Do not create another release branch.
-
-For a failed tag/publish run, inspect both client and server workflow summaries. Reuse the existing immutable tag only when its commit matches the intended release; never force-update it. The reusable Release Tag workflow supports a manual `merge_sha` retry after checking the documented contract.
-
-End-to-end tag and publication verification requires a separately approved release PR merge. The repository setup itself does not publish a release.
-
-## Merge requests
-
-A human requests the release merge by posting `/merge` on the pull request. Securefix performs the squash merge after the required checks and review pass. Only `civitaspo` may request it; release pull requests are not automerged. See the shared [merge policy](https://github.com/civitaspo/securefix-server/blob/main/docs/merging.md).
+If version synchronization is pending, inspect the autofix job and its server request before retrying. Do not bypass failing checks. For publication failures, inspect the client caller and server run. Reuse an existing tag only when it points to the intended squash merge; never force-update a published tag.
