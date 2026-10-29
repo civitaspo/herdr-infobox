@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - 2026-10-29
+
+
+### Bug Fixes
+
+- update rust crate rustix to v1.1.6
+- accept trusted Renovate merge requests
+
+
+### Maintenance
+
+- sync managed files (#110)
+- update rust crate unicode-width to v0.2.3
+- update civitaspo/csm-ci-actions action to v0.3.1
+- sync managed files
+- sync managed files
+- sync managed files
+
 ## [0.1.1] - 2026-10-25
 
 
@@ -74,6 +92,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update dependency jdx/mise to v2026.10.2 (#29)
 - update jdx/mise-action action to v5.1.0 (#28)
 - update dependency jdx/mise to v2026.10.1 (#25)
+
+
+### Miscellaneous
+
+- chore(release): v0.1.1
 
 ## [0.1.0] - 2026-10-03
 
